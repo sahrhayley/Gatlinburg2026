@@ -96,24 +96,38 @@ async function connectSharedFamily(){
   if(!syncPoll)syncPoll=setInterval(async()=>{await flushSync();await refreshFamily();},12000);
  }catch(err){textStatus("Family database unavailable — retrying",true);console.error("Family connection",err);}
 }
-function exportFamilyBackup(){
- const snapshot={
-  format:"gatlinburg-family-backup-v1",
-  exportedAt:new Date().toISOString(),
-  note:"Includes local votes and pending changes. Database votes must also be exported from Supabase for a complete independent backup.",
-  activities:state.activities.map(a=>({id:a.id,name:a.name,category:a.category,area:a.area,photo:a.photo||""})),
-  votes:state.votes,
-  deletedIds:state.deletedIds,
-  pendingOperations:syncQueue,
-  planning:planning
- };
- const blob=new Blob([JSON.stringify(snapshot,null,2)],{type:"application/json"});
- const url=URL.createObjectURL(blob);
- const link=document.createElement("a");
- link.href=url;link.download="gatlinburg-backup-"+new Date().toISOString().slice(0,10)+".json";
- document.body.appendChild(link);link.click();link.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1000);
- showToast("Local backup downloaded. Export Supabase votes separately.");
+async function exportFamilyBackup(){
+ const button=$("#backupDataBtn");
+ button.disabled=true;
+ const previous=button.textContent;
+ button.textContent="Downloading…";
+ try{
+  // Read fresh shared rankings; never overwrite the database during export.
+  const remote=await rpc("get_family_trip",{p_code:familyCode});
+  if(!remote||!Array.isArray(remote.votes))throw Error("Family votes were not returned");
+  const activities=[...seed,...(remote.activities||[])];
+  const byId=new Map(activities.map(a=>[a.id,a]));
+  const records=remote.votes.map(v=>({
+   person:v.person,activity_id:v.id,
+   activity_name:byId.get(v.id)?.name||"(Unknown activity)",
+   category:byId.get(v.id)?.category||"",
+   area:byId.get(v.id)?.area||"",
+   choice:v.choice
+  }));
+  if(!records.length)throw Error("No saved votes returned. No empty backup downloaded.");
+  const columns=["person","activity_id","activity_name","category","area","choice"];
+  const csv=[columns.join(","),...records.map(r=>columns.map(k=>'"'+String(r[k]??"").replace(/"/g,'""')+'"').join(","))].join("\r\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;link.download="gatlinburg-family-choices-"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast("Downloaded "+records.length+" saved family choices.");
+ }catch(err){
+  console.error("Download family choices failed",err);
+  showToast("Download failed. Saved database choices were not changed.");
+ }finally{button.disabled=false;button.textContent=previous;}
 }
 function showSyncDialog(){
  $("#syncShade").classList.remove("hidden");
