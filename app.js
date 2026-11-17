@@ -282,6 +282,8 @@ const PLAN_STORAGE_KEY="gatlinburg-planning-v1";
 let planning={costs:{},included:{},days:{},day:"",start:{}};
 try{const stored=JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY)||"null");if(stored&&typeof stored==="object")planning={...planning,...stored};}catch(e){console.warn("Planning data could not load",e);}
 let topView="board",costFilter="all",costPerson=state.profile;
+const COST_ESTIMATES=Object.fromEntries((window.GATLINBURG_COST_ESTIMATES||[]).map(x=>[x.id,x]));
+const costFor=id=>planning.costs[id]!==undefined?Number(planning.costs[id])||0:COST_ESTIMATES[id]?.amount||0;
 const money=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n)||0);
 const savePlanning=()=>{try{localStorage.setItem(PLAN_STORAGE_KEY,JSON.stringify(planning));}catch(e){showToast("Planning changes could not be saved");}};
 const rankOf=(person,id)=>state.votes[person]?.[id]||"unsorted";
@@ -303,10 +305,10 @@ function renderCosts(){
  $("#costPerson").innerHTML=people.map(p=>'<option value="'+safe(p)+'" '+(p===costPerson?"selected":"")+'>'+safe(p)+'</option>').join("");
  $("#costRankFilter").innerHTML='<option value="all">All rankings</option>'+CATS.map(c=>'<option value="'+c.key+'" '+(c.key===costFilter?"selected":"")+'>'+safe(c.label)+'</option>').join("");
  const visible=state.activities.filter(a=>costFilter==="all"||rankOf(costPerson,a.id)===costFilter);
- const total=visible.reduce((sum,a)=>sum+(Number(planning.costs[a.id])||0),0);
+ const total=visible.reduce((sum,a)=>sum+(costFor(a.id)),0);
  const checked=visible.reduce((sum,a)=>sum+(planning.included[a.id]?(Number(planning.costs[a.id])||0):0),0);
  $("#costGrandTotal").textContent=money(total);$("#costCheckedTotal").textContent=money(checked);
- $("#costRows").innerHTML=visible.map(a=>'<div class="planning-row cost-row"><label class="check-name"><input type="checkbox" data-cost-check="'+safe(a.id)+'" '+(planning.included[a.id]?"checked":"")+'><span><strong>'+safe(a.name)+'</strong><small>'+safe(statusLabel(rankOf(costPerson,a.id)))+' · '+safe(a.area)+'</small></span></label><label class="money-entry">$ <input type="number" min="0" step="0.01" inputmode="decimal" aria-label="Cost for '+safe(a.name)+'" data-cost-amount="'+safe(a.id)+'" value="'+safe(planning.costs[a.id]??"")+'" placeholder="0.00"></label></div>').join("")||'<p>No activities in this ranking.</p>';
+ $("#costRows").innerHTML=visible.map(a=>'<div class="planning-row cost-row"><label class="check-name"><input type="checkbox" data-cost-check="'+safe(a.id)+'" '+(planning.included[a.id]?"checked":"")+'><span><strong>'+safe(a.name)+'</strong><small>'+safe(statusLabel(rankOf(costPerson,a.id)))+' · '+safe(a.area)+'</small></span></label><label class="money-entry">$ <input type="number" min="0" step="0.01" inputmode="decimal" aria-label="Cost for '+safe(a.name)+'" data-cost-amount="'+safe(a.id)+'" value="'+safe(planning.costs[a.id]??COST_ESTIMATES[a.id]?.amount??"")+'" placeholder="0.00"></label><small class="cost-note">'+safe(COST_ESTIMATES[a.id]?.kind||"Custom")+': '+safe(COST_ESTIMATES[a.id]?.note||"Enter your own total")+(COST_ESTIMATES[a.id]?.source?' <a href="'+safe(COST_ESTIMATES[a.id].source)+'" target="_blank" rel="noopener noreferrer">Price source</a>':"")+'</small></div>').join("")||'<p>No activities in this ranking.</p>';
 }
 function dayKey(){return planning.day||new Date().toLocaleDateString("en-CA");}
 function minutesFromTime(t){const [h,m]=String(t||"09:00").split(":").map(Number);return (h||0)*60+(m||0);}
