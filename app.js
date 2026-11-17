@@ -278,7 +278,7 @@ $("#syncShade").addEventListener("click",e=>{if(e.target.id==="syncShade")closeD
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDialog("modalShade");closeDialog("syncShade");}});
 load();initFilter();render();void connectSharedFamily();
 // Future deployments are detected on already-open pages, without changing the URL.
-const RUNNING_SITE_VERSION="17";
+const RUNNING_SITE_VERSION="18";
 async function checkSiteVersion(){
  if(drag||touchPending||syncBusy||syncQueue.length)return;
  try{
