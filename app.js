@@ -262,7 +262,7 @@ document.addEventListener("touchcancel",()=>{
   clearTimeout(touchPending?.timer);
   touchPending=null;cancelDrag();
 });
-document.addEventListener("click",e=>{const del=e.target.closest("[data-delete]");if(del){e.preventDefault();deleteActivity(del.dataset.delete);return;}const p=e.target.closest("[data-person]");if(p){state.profile=p.dataset.person;persist();render();return;}const b=e.target.closest("[data-bucket]");if(b){state.active=b.dataset.bucket;persist();render();return;}const tab=e.target.closest("[data-view]");if(tab){state.view=tab.dataset.view;render();return;}const chip=e.target.closest("[data-match]");if(chip){state.matchFilter=chip.dataset.match;renderMatch();}});
+document.addEventListener("click",e=>{const del=e.target.closest("[data-delete]");if(del){e.preventDefault();deleteActivity(del.dataset.delete);return;}const p=e.target.closest("[data-person]");if(p){state.profile=p.dataset.person;persist();render();return;}const b=e.target.closest("[data-bucket]");if(b){state.active=b.dataset.bucket;persist();render();return;}const tab=e.target.closest("[data-view]");if(tab){showTopView("board");state.view=tab.dataset.view;render();return;}const chip=e.target.closest("[data-match]");if(chip){state.matchFilter=chip.dataset.match;renderMatch();}});
 document.addEventListener("change",e=>{if(e.target.matches("[data-vote]"))setVote(e.target.dataset.vote,e.target.value);});
 $("#search").addEventListener("input",e=>{state.search=e.target.value;renderCards();});
 $("#activityFilter").addEventListener("change",e=>{state.filter=e.target.value;renderCards();});
@@ -292,7 +292,7 @@ function showTopView(view){
  $("#plannerPanel").classList.toggle("hidden",view!=="planner");
  $(".hero").classList.toggle("hidden",view!=="board");
  $(".profile-section").classList.toggle("hidden",view!=="board");
- $(".tabs").classList.toggle("hidden",view!=="board");
+ $(".tabs").classList.remove("hidden");
  ["boardView","matchesView","compareView"].forEach(id=>$("#"+id).classList.toggle("hidden",view!=="board"||(id!==(state.view==="board"?"boardView":state.view==="matches"?"matchesView":"compareView"))));
  document.querySelectorAll("[data-top-view]").forEach(b=>b.classList.toggle("selected",b.dataset.topView===view));
  if(view==="costs"){ $("#planningTitle").textContent="Trip costs";renderCosts();}
