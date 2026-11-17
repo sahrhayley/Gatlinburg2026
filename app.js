@@ -128,7 +128,7 @@ function compareInfo(a){const votes=PEOPLE.map(p=>voteFor(p[0],a.id));const rank
 function statusLabel(k){return CATS.find(c=>c.key===k)?.label||"UNSORTED";}
 function renderMatch(){const items=state.activities.map(a=>({...a,info:compareInfo(a)})).sort((a,b)=>b.info.score-a.info.score||b.info.ranked-a.info.ranked||a.name.localeCompare(b.name));const matches=items.filter(a=>a.info.type==="match").length;const conflicts=items.filter(a=>a.info.type==="conflict").length;$("#summaryStats").innerHTML=`<div class="stat"><strong>${matches}</strong><span>Shared favorites</span></div><div class="stat"><strong>${conflicts}</strong><span>Disagreements</span></div><div class="stat"><strong>${items.filter(a=>a.info.ranked).length}</strong><span>Activities voted on</span></div>`;$("#matchFilters").innerHTML=[["all","All"],["match","Shared favorites"],["conflict","Disagreements"],["pending","Still deciding"]].map(([k,v])=>`<button type="button" class="chip ${state.matchFilter===k?"active":""}" data-match="${k}">${v}</button>`).join("");const displayed=items.filter(a=>state.matchFilter==="all"?a.info.ranked>0:a.info.type===state.matchFilter);$("#matchCards").innerHTML=displayed.map(a=>`<div class="match"><span class="match-tag ${a.info.type}">${a.info.type==="match"?"♥ Shared favorite":a.info.type==="conflict"?"↔ Different opinions":"◷ Still deciding"}</span><h3>${safe(categoryEmoji(a.category))} ${safe(a.name)}</h3><small>${safe(a.area)}</small><div class="votes">${PEOPLE.map((p,i)=>`<div class="vote"><b>${avatarFor(p[0],p[1])} ${p[0]}</b><span>${statusLabel(a.info.votes[i])}</span></div>`).join("")}</div></div>`).join("")||'<div class="empty-state">No matching activities yet. Start sorting!</div>';}
 function renderCompare(){const search=$("#compareSearch").value.trim().toLowerCase();const arr=state.activities.filter(a=>a.name.toLowerCase().includes(search)).sort((a,b)=>a.name.localeCompare(b.name));$("#comparisonRows").innerHTML=arr.map(a=>`<tr><td>${safe(categoryEmoji(a.category))} ${safe(a.name)}</td>${PEOPLE.map(p=>{const v=voteFor(p[0],a.id);return `<td><span class="pill ${v}">${statusLabel(v)}</span></td>`}).join("")}</tr>`).join("");}
-function render(){renderProfiles();renderTabs();renderBuckets();if(state.view==="board")renderCards();if(state.view==="matches")renderMatch();if(state.view==="compare")renderCompare();}
+function render(){renderProfiles();renderTabs();renderBuckets();if(topView!=="board"){if(topView==="costs")renderCosts();else renderPlanner();return;}if(state.view==="board")renderCards();if(state.view==="matches")renderMatch();if(state.view==="compare")renderCompare();}
 function showToast(t){const el=$("#toast");el.textContent=t;el.classList.remove("hidden");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>el.classList.add("hidden"),2500);}
 function closeDialog(id){$("#"+id).classList.add("hidden");}
 function openAdd(){$("#activityForm").reset();$("#activityCategory").innerHTML=ACTIVITY_CATEGORIES.map(c=>`<option value="${safe(c.name)}">${safe(c.emoji)} ${safe(c.name)}</option>`).join("");$("#modalShade").classList.remove("hidden");$("#activityName").focus();}
@@ -276,6 +276,67 @@ $("#syncSettingsBtn").addEventListener("click",showSyncDialog);
 $("#closeSync").addEventListener("click",()=>closeDialog("syncShade"));
 $("#syncShade").addEventListener("click",e=>{if(e.target.id==="syncShade")closeDialog("syncShade");});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDialog("modalShade");closeDialog("syncShade");}});
+
+/* Development-only cost and itinerary tools. Saved independently from family votes. */
+const PLAN_STORAGE_KEY="gatlinburg-planning-v1";
+let planning={costs:{},included:{},days:{},day:"",start:{}};
+try{const stored=JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY)||"null");if(stored&&typeof stored==="object")planning={...planning,...stored};}catch(e){console.warn("Planning data could not load",e);}
+let topView="board",costFilter="all",costPerson=state.profile;
+const money=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n)||0);
+const savePlanning=()=>{try{localStorage.setItem(PLAN_STORAGE_KEY,JSON.stringify(planning));}catch(e){showToast("Planning changes could not be saved");}};
+const rankOf=(person,id)=>state.votes[person]?.[id]||"unsorted";
+function showTopView(view){
+ topView=view;
+ $("#planningToolsView").classList.toggle("hidden",view==="board");
+ $("#costsPanel").classList.toggle("hidden",view!=="costs");
+ $("#plannerPanel").classList.toggle("hidden",view!=="planner");
+ $(".hero").classList.toggle("hidden",view!=="board");
+ $(".profile-section").classList.toggle("hidden",view!=="board");
+ $(".tabs").classList.toggle("hidden",view!=="board");
+ ["boardView","matchesView","compareView"].forEach(id=>$("#"+id).classList.toggle("hidden",view!=="board"||(id!==(state.view==="board"?"boardView":state.view==="matches"?"matchesView":"compareView"))));
+ document.querySelectorAll("[data-top-view]").forEach(b=>b.classList.toggle("selected",b.dataset.topView===view));
+ if(view==="costs"){ $("#planningTitle").textContent="Trip costs";renderCosts();}
+ if(view==="planner"){ $("#planningTitle").textContent="Day planner";renderPlanner();}
+}
+function renderCosts(){
+ const people=PEOPLE.map(p=>p[0]);
+ $("#costPerson").innerHTML=people.map(p=>'<option value="'+safe(p)+'" '+(p===costPerson?"selected":"")+'>'+safe(p)+'</option>').join("");
+ $("#costRankFilter").innerHTML='<option value="all">All rankings</option>'+CATS.map(c=>'<option value="'+c.key+'" '+(c.key===costFilter?"selected":"")+'>'+safe(c.label)+'</option>').join("");
+ const visible=state.activities.filter(a=>costFilter==="all"||rankOf(costPerson,a.id)===costFilter);
+ const total=visible.reduce((sum,a)=>sum+(Number(planning.costs[a.id])||0),0);
+ const checked=visible.reduce((sum,a)=>sum+(planning.included[a.id]?(Number(planning.costs[a.id])||0):0),0);
+ $("#costGrandTotal").textContent=money(total);$("#costCheckedTotal").textContent=money(checked);
+ $("#costRows").innerHTML=visible.map(a=>'<div class="planning-row cost-row"><label class="check-name"><input type="checkbox" data-cost-check="'+safe(a.id)+'" '+(planning.included[a.id]?"checked":"")+'><span><strong>'+safe(a.name)+'</strong><small>'+safe(statusLabel(rankOf(costPerson,a.id)))+' · '+safe(a.area)+'</small></span></label><label class="money-entry">$ <input type="number" min="0" step="0.01" inputmode="decimal" aria-label="Cost for '+safe(a.name)+'" data-cost-amount="'+safe(a.id)+'" value="'+safe(planning.costs[a.id]??"")+'" placeholder="0.00"></label></div>').join("")||'<p>No activities in this ranking.</p>';
+}
+function dayKey(){return planning.day||new Date().toLocaleDateString("en-CA");}
+function minutesFromTime(t){const [h,m]=String(t||"09:00").split(":").map(Number);return (h||0)*60+(m||0);}
+function timeLabel(min){return new Date(2000,0,1,0,Math.max(0,min)).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});}
+function renderPlanner(){
+ const day=dayKey();planning.day=day;$("#plannerDate").value=day;
+ const start=planning.start[day]||"09:00";$("#plannerStart").value=start;
+ const rows=planning.days[day]||[];
+ $("#plannerAddActivity").innerHTML=state.activities.map(a=>'<option value="'+safe(a.id)+'">'+safe(a.name)+'</option>').join("");
+ let cursor=minutesFromTime(start);
+ $("#plannerRows").innerHTML=rows.map((stop,i)=>{
+ const a=state.activities.find(x=>x.id===stop.id);
+ const duration=Math.max(0,Number(stop.duration)||0),travel=Math.max(0,Number(stop.travel)||0);
+ const begin=timeLabel(cursor);cursor+=duration;const end=timeLabel(cursor);cursor+=travel;
+ return '<div class="planning-row itinerary-row"><div class="itinerary-top"><label class="check-name"><input type="checkbox" data-stop-check="'+i+'" '+(stop.done?"checked":"")+'><span><strong class="'+(stop.done?"done-stop":"")+'">'+safe(a?.name||"Removed activity")+'</strong><small>'+safe(begin)+' – '+safe(end)+'</small></span></label><button class="secondary-button" data-stop-remove="'+i+'" type="button">Remove</button></div><div class="itinerary-fields"><label>Stay (min)<input class="input" type="number" min="0" step="5" data-stop-duration="'+i+'" value="'+duration+'"></label><label>Travel to next (min)<input class="input" type="number" min="0" step="5" data-stop-travel="'+i+'" value="'+travel+'"></label><div class="move-stop"><button type="button" data-stop-up="'+i+'" '+(i===0?"disabled":"")+'>↑</button><button type="button" data-stop-down="'+i+'" '+(i===rows.length-1?"disabled":"")+'>↓</button></div></div></div>';
+ }).join("")||'<p class="empty-plan">No stops yet. Choose an activity and add it above.</p>';
+ $("#plannerStopCount").textContent=rows.length;
+ $("#plannerFinish").textContent=rows.length?timeLabel(cursor-Math.max(0,Number(rows.at(-1).travel)||0)):"—";
+}
+$("#costPerson").addEventListener("change",e=>{costPerson=e.target.value;renderCosts();});
+$("#costRankFilter").addEventListener("change",e=>{costFilter=e.target.value;renderCosts();});
+$("#costRows").addEventListener("change",e=>{const amount=e.target.dataset.costAmount,check=e.target.dataset.costCheck;if(amount){planning.costs[amount]=Math.max(0,Number(e.target.value)||0);}if(check){planning.included[check]=e.target.checked;}savePlanning();renderCosts();});
+$("#plannerDate").addEventListener("change",e=>{planning.day=e.target.value;savePlanning();renderPlanner();});
+$("#plannerStart").addEventListener("change",e=>{planning.start[dayKey()]=e.target.value;savePlanning();renderPlanner();});
+$("#plannerAddBtn").addEventListener("click",()=>{const id=$("#plannerAddActivity").value;if(!id)return;(planning.days[dayKey()]??=[]).push({id,duration:60,travel:15,done:false});savePlanning();renderPlanner();});
+$("#plannerRows").addEventListener("change",e=>{const rows=planning.days[dayKey()]||[];const t=e.target.dataset;const index=Number(t.stopDuration??t.stopTravel??t.stopCheck);if(!rows[index])return;if(t.stopDuration!==undefined)rows[index].duration=Math.max(0,Number(e.target.value)||0);if(t.stopTravel!==undefined)rows[index].travel=Math.max(0,Number(e.target.value)||0);if(t.stopCheck!==undefined)rows[index].done=e.target.checked;savePlanning();renderPlanner();});
+$("#plannerRows").addEventListener("click",e=>{const btn=e.target.closest("[data-stop-remove],[data-stop-up],[data-stop-down]");if(!btn)return;const rows=planning.days[dayKey()]||[];const t=btn.dataset;const i=Number(t.stopRemove??t.stopUp??t.stopDown);if(t.stopRemove!==undefined)rows.splice(i,1);else{const j=i+(t.stopUp!==undefined?-1:1);if(j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];}savePlanning();renderPlanner();});
+document.querySelectorAll("[data-top-view]").forEach(b=>b.addEventListener("click",()=>showTopView(b.dataset.topView)));
+$("#backToBoard").addEventListener("click",()=>{showTopView("board");render();});
+
 load();initFilter();render();void connectSharedFamily();
 // Future deployments are detected on already-open pages, without changing the URL.
 const RUNNING_SITE_VERSION="18";
