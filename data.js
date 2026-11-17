@@ -116,3 +116,35 @@ window.GATLINBURG_ACTIVITIES = [
 ["State Line (TN–NC)","Scenic spots","📍","Great Smoky Mountains"],
 ["Hangman's Dome","Games & rides","🎯","Gatlinburg"]
 ].map((a,i)=>({id:"default-"+(i+1),name:a[0],category:window.gatlinburgCategoryName(a[1],a[0]),emoji:a[2],area:a[3],photo:""}));
+// First five attraction photos; the rest remain unchanged until reviewed.
+const PHOTO_BATCH_1 = {
+  "default-1": {
+    "url": "https://cdn.tripster.com/media/product/gallery/original/Anakeesta_%2874547%29.jpg",
+    "credit": "Tripster",
+    "source": "https://www.tripster.com/detail/anakeesta-gatlinburg"
+  },
+  "default-2": {
+    "url": "https://cdn.sanity.io/images/k8yfdmw9/gatlinburg/92a83ba4a9d499bacc7b172a5fb2d80a95794200-2856x2142.jpg?auto=format&h=975&q=70&w=1300",
+    "credit": "Gatlinburg SkyPark",
+    "source": "https://www.gatlinburgskypark.com/videos-and-photos"
+  },
+  "default-3": {
+    "url": "https://assets.simpleviewinc.com/simpleview/image/upload/crm/gatlinburgtn/SMTram_470BEA2B-7BDD-4E3E-93F6A69E110CCFDD_e8599745-ba5a-41c0-87e1430d433d2021.jpg",
+    "credit": "Gatlinburg tourism",
+    "source": "https://www.gatlinburg.com/listing/the-gatlinburg-tram-at-ober-mountain/781/"
+  },
+  "default-4": {
+    "url": "https://static.wixstatic.com/media/4c949a_3d5d322a32e040c4bb855349bb10014b~mv2.jpg/v1/fill/w_980%2Ch_658%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/4c949a_3d5d322a32e040c4bb855349bb10014b~mv2.jpg",
+    "credit": "The Mindful Moderator",
+    "source": "https://www.themindfulmoderator.com/post/how-to-get-the-most-bang-for-your-buck-in-gatlinburg-and-pigeon-forge"
+  },
+  "default-5": {
+    "url": "https://pub-a4572e6ecae942889eeac3241a2da909.r2.dev/listings/the-island-in-pigeon-forge-pigeon-forge/7900e2fad0ce-1-full.webp",
+    "credit": "The Smoky Mountains",
+    "source": "https://www.thesmokymountains.com/listing/the-island-in-pigeon-forge-pigeon-forge"
+  }
+};
+window.GATLINBURG_ACTIVITIES.forEach(activity => {
+  const p = PHOTO_BATCH_1[activity.id];
+  if(p) { activity.photo=p.url; activity.photoSource=p.source; activity.photoCredit=p.credit; }
+});
