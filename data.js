@@ -163,3 +163,6 @@ window.GATLINBURG_ACTIVITIES.forEach(activity => {
   const image=PHOTO_BATCH_REST[n];
   if(image){activity.photo=image[0];activity.photoSource=image[1];}
 });
+
+// Evening light-walk experience at Anakeesta; separate admission from daytime entry.
+window.GATLINBURG_ACTIVITIES.push({id:"default-93",name:"Astra Lumina at Anakeesta",category:"Attractions & experiences",emoji:"✨",area:"Gatlinburg",photo:""});
