@@ -46,9 +46,14 @@ function dragMove(x,y){
   if(!drag.moved&&Math.hypot(x-drag.x,y-drag.y)<7)return;
   if(!drag.moved){
     drag.moved=true;
-    drag.ghost=document.createElement("div");
-    drag.ghost.style.cssText="position:fixed;z-index:99;pointer-events:none;background:white;padding:14px;border-radius:12px;box-shadow:0 12px 34px #143e3866;font-weight:800;font-size:13px;max-width:190px;transform:rotate(2deg)";
-    drag.ghost.textContent=state.activities.find(a=>a.id===drag.id)?.name||"";
+    // Use a full visual copy of the card, including the photo and the details.
+    drag.ghost=drag.card.cloneNode(true);
+    drag.ghost.removeAttribute("data-id");
+    drag.ghost.setAttribute("aria-hidden","true");
+    drag.ghost.classList.add("drag-preview");
+    drag.ghost.querySelectorAll("select").forEach(el=>{el.disabled=true;el.tabIndex=-1;});
+    drag.ghost.querySelectorAll("a").forEach(el=>{el.removeAttribute("href");el.tabIndex=-1;});
+    drag.ghost.style.width=Math.min(drag.card.getBoundingClientRect().width,245)+"px";
     document.body.append(drag.ghost);
     drag.card.style.opacity=".5";
   }
