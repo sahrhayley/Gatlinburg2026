@@ -87,10 +87,13 @@ async function connectFamily(code,create=false){
  try{
   if(create)await rpc("create_family_trip",{p_code:cleaned});
   const remote=await rpc("get_family_trip",{p_code:cleaned});
-  // Import existing device rankings only for a brand-new trip. Never overwrite an existing family's choices.
-  if(create)await rpc("import_family_choices",{p_code:cleaned,p_payload:{activities:state.activities.filter(a=>a.id.startsWith("custom-")),votes:state.votes}});
+  // Merge existing device data without overwriting votes already in the shared database.
+  if(!familyCode||familyCode!==cleaned){
+   await rpc("import_family_choices",{p_code:cleaned,p_payload:{activities:state.activities.filter(a=>a.id.startsWith("custom-")),votes:state.votes}});
+   if(create){for(const id of state.deletedIds||[]){await rpc("delete_family_activity",{p_code:cleaned,p_operation:crypto.randomUUID(),p_activity:id,p_pin:"3394"});}}
+  }
   familyCode=cleaned;localStorage.setItem(SYNC_CODE_KEY,cleaned);
-  syncReady=true;mergeRemote(create?await rpc("get_family_trip",{p_code:cleaned}):remote);
+  syncReady=true;mergeRemote(await rpc("get_family_trip",{p_code:cleaned}));
   await flushSync();showSyncDialog();$("#syncMessage").textContent="Connected. Your family shares one database.";
   if(!syncPoll)syncPoll=setInterval(async()=>{await flushSync();await refreshFamily();},12000);
  }catch(err){$("#syncMessage").textContent="Connection failed: "+err.message;textStatus("Family sync failed",true);}
