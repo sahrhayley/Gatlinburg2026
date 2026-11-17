@@ -90,3 +90,4 @@
 
 /* Family portraits: show the complete uncropped square artwork */
 .family-avatar{display:inline-block;width:32px;height:32px;object-fit:contain;vertical-align:middle;flex-shrink:0}.profile-face{background:transparent;width:42px;height:42px;overflow:visible}.profile-face .family-avatar{width:42px;height:42px}.vote b{display:flex;align-items:center;gap:5px}.vote .family-avatar,.comparison .family-avatar{width:23px;height:23px}
+\n/* Drag previews must never intercept the drop target or remain interactive. */\n.drag-preview{pointer-events:none!important;user-select:none!important;-webkit-user-select:none!important;touch-action:none!important;}\n
