@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#173b3a" />
+  <meta name="description" content="Plan our Gatlinburg trip together." />
+  <title>Gatlinburg 2026 · Our Family Adventure</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./config.js"></script>
+  <script src="./data.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand"><span class="brand-icon">⛰️</span> <span>GATLINBURG <em>2026</em></span></div>
+      <div class="header-tools">
+        <span class="sync-label"><span class="status-dot" id="statusDot"></span><span id="syncStatus">Saved on this device</span></span>
+        <button id="syncSettingsBtn" class="head-button" type="button">⚙ Sync</button>
+      </div>
+    </div>
+  </header>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">✦ OUR FAMILY ADVENTURE PLANNER</div>
+        <h1>Our Smoky Mountain<br />bucket list.</h1>
+        <p>Big adventures. Little opinions. One unforgettable trip.</p>
+      </div>
+      <svg class="mountains" viewBox="0 0 510 235" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+        <path d="M0 227 124 102 171 151 283 37 383 142 432 91 510 166V235H0Z" fill="#a4c7bd"/>
+        <path d="m0 231 135-88 44 32 108-111 90 111 54-36 79 69v27H0Z" fill="#5b9186"/>
+        <path d="m0 235 72-53 92 36 116-105 105 109 52-32 73 39v6H0Z" fill="#295a56"/>
+      </svg>
+    </section>
+    <section class="profile-section" aria-label="Family members">
+      <div class="section-heading">WHO'S CHOOSING?</div>
+      <div class="profiles" id="profiles"></div>
+    </section>
+    <nav class="tabs" aria-label="Views">
+      <button class="tab active" data-view="board" type="button">✦ My board</button>
+      <button class="tab" data-view="matches" type="button">♥ Family matches</button>
+      <button class="tab" data-view="compare" type="button">▦ Side by side</button>
+    </nav>
+    <section id="boardView">
+      <div class="toolbar">
+        <div><h2 id="boardTitle">Your adventure board</h2><p class="subtitle">Drag cards or use the category menu to sort them.</p></div>
+        <div class="tools">
+          <input id="search" class="input" type="search" placeholder="⌕ Search activities" aria-label="Search activities" />
+          <select id="activityFilter" class="input" aria-label="Filter activity types"><option value="">All activity types</option></select>
+          <button id="addActivityBtn" class="primary-button" type="button">+ Add activity</button>
+        </div>
+      </div>
+      <div class="buckets" id="buckets" aria-label="Ranking categories"></div>
+      <div class="info-tip" id="boardTip">✦ <strong>Everything starts in Unsorted.</strong> Tap a category to see its activities. You can drag a card onto a category or use the dropdown on the card.</div>
+      <div class="cards" id="cards"></div>
+      <div class="empty-state hidden" id="emptyState"><span>🧭</span><h3>Nothing here yet</h3><p>Try another category, or add something new.</p></div>
+    </section>
+    <section id="matchesView" class="hidden">
+      <div class="toolbar"><div><h2>Where we agree ✨</h2><p class="subtitle">Shared favorites and things worth talking about.</p></div></div>
+      <div class="compare-summary" id="summaryStats"></div>
+      <div class="compare-chips" id="matchFilters"></div>
+      <div class="match-grid" id="matchCards"></div>
+    </section>
+    <section id="compareView" class="hidden">
+      <div class="toolbar"><div><h2>Side by side</h2><p class="subtitle">See everyone's choices in one place.</p></div>
+        <div class="tools"><input id="compareSearch" class="input" type="search" placeholder="⌕ Find an activity" aria-label="Find an activity" /></div>
+      </div>
+      <div class="table-scroller"><table class="comparison"><thead><tr><th>Activity</th><th>Hayley</th><th>Caleb</th><th>Suttonn</th><th>Nox</th></tr></thead><tbody id="comparisonRows"></tbody></table></div>
+    </section>
+    <p class="footer">Made for our Gatlinburg adventure · 2026 🌲</p>
+  </main>
+  <div class="modal-shade hidden" id="modalShade" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button id="closeModal" class="modal-close" type="button" aria-label="Close">✕</button>
+      <h2 id="modalTitle">Add an activity</h2><p id="modalDescription" class="modal-description">Add a new idea to everyone's Unsorted list.</p>
+      <form id="activityForm">
+        <label for="activityName">Activity name *</label>
+        <input id="activityName" class="input" type="text" required maxlength="110" placeholder="e.g. Pigeon Forge Snow" />
+        <label for="activityCategory">Type</label>
+        <select id="activityCategory" class="input"></select>
+        <label for="activityArea">Area</label>
+        <select id="activityArea" class="input"><option>Gatlinburg</option><option>Pigeon Forge</option><option>Sevierville</option><option>Great Smoky Mountains</option><option>Other</option></select>
+        <label for="activityPhoto">Photo URL (optional)</label>
+        <input id="activityPhoto" class="input" type="url" placeholder="https://..." />
+        <div class="modal-buttons"><button id="cancelModal" class="secondary-button" type="button">Cancel</button><button class="primary-button" id="saveActivity" type="submit">Save activity</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-shade hidden" id="syncShade" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
+      <button id="closeSync" class="modal-close" type="button" aria-label="Close">✕</button>
+      <h2 id="syncTitle">Family sync</h2>
+      <p class="modal-description" id="syncHelp">Your choices are saved on this device. Connect the family database to share them automatically.</p>
+      <div id="syncConnectForm">
+        <label for="tripCode">Existing family code (leave blank to create a new trip)</label>
+        <input class="input" id="tripCode" type="text" placeholder="Paste family code" autocomplete="off" autocapitalize="off" />
+        <div class="modal-buttons"><button class="secondary-button" type="button" id="disconnectBtn">Leave trip</button><button class="primary-button" type="button" id="connectBtn">Connect</button></div>
+      </div>
+      <div id="syncConnected" class="hidden">
+        <label>Family code</label><div class="share-code"><code id="familyCode"></code><button class="secondary-button" id="copyLinkBtn" type="button">Copy invite link</button></div>
+        <p class="modal-description">Share this invite with Caleb and the girls. Votes sync automatically when online, with offline changes queued locally.</p>
+        <div class="modal-buttons"><button class="secondary-button" type="button" id="leaveTripBtn">Leave trip on this device</button></div>
+      </div>
+      <div id="syncMessage" class="inline-message" role="status"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden" role="status"></div>
+</body>
+</html>
