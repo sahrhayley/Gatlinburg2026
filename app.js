@@ -277,3 +277,19 @@ $("#closeSync").addEventListener("click",()=>closeDialog("syncShade"));
 $("#syncShade").addEventListener("click",e=>{if(e.target.id==="syncShade")closeDialog("syncShade");});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDialog("modalShade");closeDialog("syncShade");}});
 load();initFilter();render();void connectSharedFamily();
+// Future deployments are detected on already-open pages, without changing the URL.
+const RUNNING_SITE_VERSION="17";
+async function checkSiteVersion(){
+ if(drag||touchPending||syncBusy||syncQueue.length)return;
+ try{
+  const response=await fetch("./site-version.json?check="+Date.now(),{cache:"no-store"});
+  if(!response.ok)return;
+  const latest=await response.json();
+  if(String(latest.version)!==RUNNING_SITE_VERSION){
+   await flushSync();
+   if(!syncQueue.length)location.reload();
+  }
+ }catch(e){console.warn("Update check unavailable",e);}
+}
+setInterval(checkSiteVersion,30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)void checkSiteVersion();});
