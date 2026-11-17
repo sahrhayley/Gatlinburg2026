@@ -368,7 +368,7 @@ function renderPlanner(){
  const day=dayKey();planning.day=day;$("#plannerDate").value=day;
  const start=planning.start[day]||"09:00";$("#plannerStart").value=start;
  const rows=planning.days[day]||[];
- $("#plannerAddActivity").innerHTML=state.activities.map(a=>'<option value="'+safe(a.id)+'">'+safe(a.name)+'</option>').join("");
+ $("#plannerActivityOptions").innerHTML=state.activities.map(a=>'<option value="'+safe(a.name)+'"></option>').join("");
  let cursor=minutesFromTime(start);
  $("#plannerRows").innerHTML=rows.map((stop,i)=>{
  const a=state.activities.find(x=>x.id===stop.id);
@@ -384,7 +384,7 @@ $("#costRankFilter").addEventListener("change",e=>{costFilter=e.target.value;ren
 $("#costRows").addEventListener("change",e=>{const amount=e.target.dataset.costAmount,check=e.target.dataset.costCheck;if(amount){planning.costs[amount]=Math.max(0,Number(e.target.value)||0);}if(check){planning.included[check]=e.target.checked;}savePlanning();renderCosts();});
 $("#plannerDate").addEventListener("change",e=>{planning.day=e.target.value;savePlanning();renderPlanner();});
 $("#plannerStart").addEventListener("change",e=>{planning.start[dayKey()]=e.target.value;savePlanning();renderPlanner();});
-$("#plannerAddBtn").addEventListener("click",()=>{const id=$("#plannerAddActivity").value;if(!id)return;(planning.days[dayKey()]??=[]).push({id,duration:DURATION_ESTIMATES[id]??60,travel:15,done:false});savePlanning();renderPlanner();});
+$("#plannerAddBtn").addEventListener("click",()=>{const search=$("#plannerActivitySearch");const activity=state.activities.find(a=>a.name.toLowerCase()===search.value.trim().toLowerCase());if(!activity){search.setCustomValidity("Choose an activity from the suggestions.");search.reportValidity();return;}search.setCustomValidity("");const id=activity.id;search.value="";(planning.days[dayKey()]??=[]).push({id,duration:DURATION_ESTIMATES[id]??60,travel:15,done:false});savePlanning();renderPlanner();});
 $("#plannerRows").addEventListener("change",e=>{const rows=planning.days[dayKey()]||[];const t=e.target.dataset;const index=Number(t.stopDurationHours??t.stopDurationMinutes??t.stopTravelHours??t.stopTravelMinutes??t.stopCheck??t.stopOpen??t.stopClose);if(!rows[index])return;const n=Math.max(0,Math.floor(Number(e.target.value)||0));if(t.stopDurationHours!==undefined)rows[index].duration=n*60+rows[index].duration%60;if(t.stopDurationMinutes!==undefined)rows[index].duration=Math.floor(rows[index].duration/60)*60+Math.min(59,n);if(t.stopTravelHours!==undefined)rows[index].travel=n*60+rows[index].travel%60;if(t.stopTravelMinutes!==undefined)rows[index].travel=Math.floor(rows[index].travel/60)*60+Math.min(59,n);if(t.stopCheck!==undefined)rows[index].done=e.target.checked;if(t.stopOpen!==undefined)rows[index].open=e.target.value;if(t.stopClose!==undefined)rows[index].close=e.target.value;savePlanning();renderPlanner();});
 $("#plannerRows").addEventListener("click",e=>{const btn=e.target.closest("[data-stop-remove],[data-stop-up],[data-stop-down]");if(!btn)return;const rows=planning.days[dayKey()]||[];const t=btn.dataset;const i=Number(t.stopRemove??t.stopUp??t.stopDown);if(t.stopRemove!==undefined)rows.splice(i,1);else{const j=i+(t.stopUp!==undefined?-1:1);if(j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];}savePlanning();renderPlanner();});
 document.querySelectorAll("[data-top-view]").forEach(b=>b.addEventListener("click",()=>showTopView(b.dataset.topView)));
