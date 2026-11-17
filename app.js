@@ -23,7 +23,7 @@ const palette=["#d5e7e4","#eedec7","#e2e2ee","#d4e6d2","#f6decf","#d9e8ee","#ece
 function renderProfiles(){const target=$("#profiles");target.innerHTML=PEOPLE.map(([name,emoji])=>`<button type="button" class="profile ${state.profile===name?"selected":""}" data-person="${name}" aria-pressed="${state.profile===name}"><span class="profile-face">${emoji}</span><span>${name}<small class="profile-sub">${name===state.profile?"Currently choosing":"Tap to choose"}</small></span></button>`).join("");}
 function renderTabs(){$$(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.view===state.view)});$("#boardView").classList.toggle("hidden",state.view!=="board");$("#matchesView").classList.toggle("hidden",state.view!=="matches");$("#compareView").classList.toggle("hidden",state.view!=="compare");}
 function renderBuckets(){$("#buckets").innerHTML=CATS.map(c=>`<button type="button" class="bucket ${state.active===c.key?"selected":""}" data-bucket="${c.key}" style="--tint:${c.tint};--accent:${c.color}" aria-pressed="${state.active===c.key}"><span class="bucket-emoji">${c.icon}</span><span><span class="bucket-title">${c.label}</span><span class="bucket-count">${totalFor(c.key)} activities</span></span></button>`).join("");}
-function renderCards(){const term=state.search.trim().toLowerCase();const arr=state.activities.filter(a=>voteFor(state.profile,a.id)===state.active&&(!state.filter||a.category===state.filter)&&(!term||(a.name+" "+a.area+" "+a.category).toLowerCase().includes(term)));$("#cards").innerHTML=arr.map((a,i)=>{const valid=/^https:\/\//i.test(a.photo||"");const color=palette[(state.activities.indexOf(a))%palette.length];const q="https://www.google.com/search?tbm=isch&q="+encodeURIComponent(a.name+" "+a.area+" attraction");return `<article class="card" data-id="${safe(a.id)}"><div class="card-image" style="--shade:${color}">${photoMarkup(a)}<span class="card-emoji" ${valid?"hidden":""}>${safe(a.emoji||"📍")}</span><span class="card-area">${safe(a.area)}</span><button type="button" class="card-drag" title="Drag to a category" data-drag="${safe(a.id)}" aria-label="Drag ${safe(a.name)}">⠿</button></div><div class="card-content"><div class="card-type">${safe(a.category)}</div><h3>${safe(a.name)}</h3><div class="card-bottom"><select aria-label="Rank ${safe(a.name)}" data-vote="${safe(a.id)}">${CATS.map(c=>`<option value="${c.key}" ${voteFor(state.profile,a.id)===c.key?"selected":""}>${c.icon} ${c.label}</option>`).join("")}</select><a class="photo-search" href="${q}" target="_blank" rel="noopener noreferrer" title="Find photos">↗</a></div></div></article>`;}).join("");$("#emptyState").classList.toggle("hidden",arr.length>0);$("#boardTitle").textContent=state.profile+"'s adventure board";}
+function renderCards(){const term=state.search.trim().toLowerCase();const arr=state.activities.filter(a=>voteFor(state.profile,a.id)===state.active&&(!state.filter||a.category===state.filter)&&(!term||(a.name+" "+a.area+" "+a.category).toLowerCase().includes(term)));$("#cards").innerHTML=arr.map((a,i)=>{const valid=/^https:\/\//i.test(a.photo||"");const color=palette[(state.activities.indexOf(a))%palette.length];const q="https://www.google.com/search?tbm=isch&q="+encodeURIComponent(a.name+" "+a.area+" attraction");return `<article class="card" data-id="${safe(a.id)}"><div class="card-image" style="--shade:${color}">${photoMarkup(a)}<span class="card-emoji" ${valid?"hidden":""}>${safe(a.emoji||"📍")}</span><span class="card-area">${safe(a.area)}</span></div><div class="card-content"><div class="card-type">${safe(a.category)}</div><h3>${safe(a.name)}</h3><div class="card-bottom"><select aria-label="Rank ${safe(a.name)}" data-vote="${safe(a.id)}">${CATS.map(c=>`<option value="${c.key}" ${voteFor(state.profile,a.id)===c.key?"selected":""}>${c.icon} ${c.label}</option>`).join("")}</select><a class="photo-search" href="${q}" target="_blank" rel="noopener noreferrer" title="Find photos">↗</a></div></div></article>`;}).join("");$("#emptyState").classList.toggle("hidden",arr.length>0);$("#boardTitle").textContent=state.profile+"'s adventure board";}
 function compareInfo(a){const votes=PEOPLE.map(p=>voteFor(p[0],a.id));const ranked=votes.filter(v=>v!=="unsorted");const positive=ranked.filter(v=>v==="must"||v==="want").length;const negative=ranked.filter(v=>v==="no").length;let type="pending";if(positive>=2&&negative===0)type="match";if(positive>0&&negative>0)type="conflict";return {votes,type,positive,ranked:ranked.length,score:votes.reduce((n,v)=>n+({must:3,want:1,unknown:0,no:-2,unsorted:0}[v]||0),0)};}
 function statusLabel(k){return CATS.find(c=>c.key===k)?.label||"UNSORTED";}
 function renderMatch(){const items=state.activities.map(a=>({...a,info:compareInfo(a)})).sort((a,b)=>b.info.score-a.info.score||b.info.ranked-a.info.ranked||a.name.localeCompare(b.name));const matches=items.filter(a=>a.info.type==="match").length;const conflicts=items.filter(a=>a.info.type==="conflict").length;$("#summaryStats").innerHTML=`<div class="stat"><strong>${matches}</strong><span>Shared favorites</span></div><div class="stat"><strong>${conflicts}</strong><span>Disagreements</span></div><div class="stat"><strong>${items.filter(a=>a.info.ranked).length}</strong><span>Activities voted on</span></div>`;$("#matchFilters").innerHTML=[["all","All"],["match","Shared favorites"],["conflict","Disagreements"],["pending","Still deciding"]].map(([k,v])=>`<button type="button" class="chip ${state.matchFilter===k?"active":""}" data-match="${k}">${v}</button>`).join("");const displayed=items.filter(a=>state.matchFilter==="all"?a.info.ranked>0:a.info.type===state.matchFilter);$("#matchCards").innerHTML=displayed.map(a=>`<div class="match"><span class="match-tag ${a.info.type}">${a.info.type==="match"?"♥ Shared favorite":a.info.type==="conflict"?"↔ Different opinions":"◷ Still deciding"}</span><h3>${safe(a.emoji)} ${safe(a.name)}</h3><small>${safe(a.area)}</small><div class="votes">${PEOPLE.map((p,i)=>`<div class="vote"><b>${p[0]}</b><span>${statusLabel(a.info.votes[i])}</span></div>`).join("")}</div></div>`).join("")||'<div class="empty-state">No matching activities yet. Start sorting!</div>';}
@@ -36,13 +36,98 @@ function addActivity(e){e.preventDefault();const name=$("#activityName").value.t
 function initFilter(){const categories=[...new Set(seed.map(a=>a.category))].sort();$("#activityFilter").innerHTML='<option value="">All activity types</option>'+categories.map(s=>`<option value="${safe(s)}">${safe(s)}</option>`).join("");}
 function downloadBackup(){const blob=new Blob([JSON.stringify({savedAt:new Date().toISOString(),...state},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="gatlinburg2026-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),500);}
 let drag=null;
-function dragStart(e,handle){if(e.button!==undefined&&e.button!==0)return;const id=handle.dataset.drag;const card=handle.closest(".card");drag={id,x:e.clientX,y:e.clientY,moved:false,handle,card};handle.setPointerCapture(e.pointerId);e.preventDefault();}
-function dragMove(e){if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<7)return;if(!drag.moved){drag.moved=true;drag.ghost=document.createElement("div");drag.ghost.style.cssText="position:fixed;z-index:99;pointer-events:none;background:white;padding:14px;border-radius:12px;box-shadow:0 12px 34px #143e3866;font-weight:800;font-size:13px;max-width:190px;transform:rotate(2deg)";drag.ghost.textContent=state.activities.find(a=>a.id===drag.id)?.name||"";document.body.append(drag.ghost);}drag.ghost.style.left=(e.clientX+12)+"px";drag.ghost.style.top=(e.clientY+10)+"px";document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));document.elementFromPoint(e.clientX,e.clientY)?.closest("[data-bucket]")?.classList.add("drag-over");}
-function dragEnd(e){if(!drag)return;const to=drag.moved?document.elementFromPoint(e.clientX,e.clientY)?.closest("[data-bucket]")?.dataset.bucket:null;drag.ghost?.remove();document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));drag=null;if(to)setVote(dragIdCache,to);}
-let dragIdCache=null;
-document.addEventListener("pointerdown",e=>{const h=e.target.closest("[data-drag]");if(h){dragIdCache=h.dataset.drag;dragStart(e,h);}});
-document.addEventListener("pointermove",dragMove);
-document.addEventListener("pointerup",dragEnd);document.addEventListener("pointercancel",()=>{drag?.ghost?.remove();drag=null;document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));});
+function dragStart(x,y,card){
+  const id=card.dataset.id;
+  if(!id)return;
+  drag={id,x,y,moved:false,card};
+}
+function dragMove(x,y){
+  if(!drag)return;
+  if(!drag.moved&&Math.hypot(x-drag.x,y-drag.y)<7)return;
+  if(!drag.moved){
+    drag.moved=true;
+    drag.ghost=document.createElement("div");
+    drag.ghost.style.cssText="position:fixed;z-index:99;pointer-events:none;background:white;padding:14px;border-radius:12px;box-shadow:0 12px 34px #143e3866;font-weight:800;font-size:13px;max-width:190px;transform:rotate(2deg)";
+    drag.ghost.textContent=state.activities.find(a=>a.id===drag.id)?.name||"";
+    document.body.append(drag.ghost);
+    drag.card.style.opacity=".5";
+  }
+  drag.ghost.style.left=(x+12)+"px";
+  drag.ghost.style.top=(y+10)+"px";
+  document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));
+  document.elementFromPoint(x,y)?.closest("[data-bucket]")?.classList.add("drag-over");
+}
+function dragEnd(x,y){
+  if(!drag)return;
+  const id=drag.id;
+  const to=drag.moved?document.elementFromPoint(x,y)?.closest("[data-bucket]")?.dataset.bucket:null;
+  drag.ghost?.remove();
+  if(drag.card)drag.card.style.opacity="";
+  document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));
+  drag=null;
+  if(to){setVote(id,to);showToast("Moved to "+statusLabel(to));}
+}
+function cancelDrag(){
+  drag?.ghost?.remove();if(drag?.card)drag.card.style.opacity="";
+  drag=null;
+  document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));
+}
+function cardFromEvent(e){if(e.target.closest("select,a,button,input"))return null;return e.target.closest(".card");}
+// Mouse and Apple Pencil: drag immediately from anywhere on the card.
+document.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="touch"||e.button!==0)return;
+  const card=cardFromEvent(e);
+  if(!card)return;
+  card.setPointerCapture(e.pointerId);
+  dragStart(e.clientX,e.clientY,card);
+});
+document.addEventListener("pointermove",e=>{if(drag&&e.pointerType!=="touch")dragMove(e.clientX,e.clientY);});
+document.addEventListener("pointerup",e=>{if(drag&&e.pointerType!=="touch")dragEnd(e.clientX,e.clientY);});
+document.addEventListener("pointercancel",e=>{if(e.pointerType!=="touch")cancelDrag();});
+// On iPad/iPhone, hold briefly to pick up a card. Ordinary swipes still scroll.
+let touchPending=null;
+document.addEventListener("touchstart",e=>{
+  if(e.touches.length!==1)return;
+  const card=cardFromEvent(e);
+  if(!card)return;
+  const t=e.touches[0];
+  const pending={x:t.clientX,y:t.clientY,card,activated:false,timer:null};
+  pending.timer=setTimeout(()=>{
+    if(touchPending!==pending)return;
+    pending.activated=true;
+    dragStart(pending.x,pending.y,pending.card);
+    if(navigator.vibrate)navigator.vibrate(12);
+  },180);
+  touchPending=pending;
+},{passive:true});
+document.addEventListener("touchmove",e=>{
+  if(!touchPending||e.touches.length!==1)return;
+  const t=e.touches[0];
+  if(!touchPending.activated){
+    if(Math.hypot(t.clientX-touchPending.x,t.clientY-touchPending.y)>9){
+      clearTimeout(touchPending.timer);
+      touchPending=null;
+    }
+    return;
+  }
+  e.preventDefault();
+  dragMove(t.clientX,t.clientY);
+},{passive:false});
+document.addEventListener("touchend",e=>{
+  if(!touchPending)return;
+  clearTimeout(touchPending.timer);
+  if(touchPending.activated){
+    e.preventDefault();
+    const t=e.changedTouches[0];
+    if(t)dragEnd(t.clientX,t.clientY);
+    else cancelDrag();
+  }
+  touchPending=null;
+},{passive:false});
+document.addEventListener("touchcancel",()=>{
+  clearTimeout(touchPending?.timer);
+  touchPending=null;cancelDrag();
+});
 document.addEventListener("click",e=>{const p=e.target.closest("[data-person]");if(p){state.profile=p.dataset.person;persist();render();return;}const b=e.target.closest("[data-bucket]");if(b){state.active=b.dataset.bucket;persist();render();return;}const tab=e.target.closest("[data-view]");if(tab){state.view=tab.dataset.view;render();return;}const chip=e.target.closest("[data-match]");if(chip){state.matchFilter=chip.dataset.match;renderMatch();}});
 document.addEventListener("change",e=>{if(e.target.matches("[data-vote]"))setVote(e.target.dataset.vote,e.target.value);});
 $("#search").addEventListener("input",e=>{state.search=e.target.value;renderCards();});
