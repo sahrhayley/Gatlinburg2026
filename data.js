@@ -121,6 +121,8 @@ window.GATLINBURG_ACTIVITIES.push(
   {id:"default-91",name:"Ice Skating at Ober Mountain",category:"Games, rides & entertainment",emoji:"⛸️",area:"Gatlinburg",photo:""},
   {id:"default-92",name:"Alpine Slide at Ober Mountain",category:"Games, rides & entertainment",emoji:"🛷",area:"Gatlinburg",photo:""}
 );
+window.GATLINBURG_ACTIVITIES.find(a=>a.id==="default-91").photo="images/jGjh8gMu8PEgFMjHjkZ0DQLVTVr0fb7sK6hm_etiQRR83qPG6KhRrWQff6I8W0fQ18vLI5iqyXS8vP34-SkqJ6B4aqHUwhFd7eSuV-fXDtqx7FAtFv4pB1xao71VgGi8vCmC1Z9Xt5YEpTsG734KIXNtxv4645ugpOhl8WxEMx1h1HvxupIW3u4NOTezlWZT.jpg";
+window.GATLINBURG_ACTIVITIES.find(a=>a.id==="default-92").photo="images/qgj9aSj98RUz8hkVqOH3yUm8XsJLi6Us2xa4t1oYQVGi-3Fnhvcc5BuU1Q_qJcBfNOzyAB90KFbP6K7B1SLejzfKrlm33kmqJJooqH9jB7xW1tfEmW-04TI80XjpGMFtTExVg4Rfda5Dh7ZUchaOhiQbBqZLbnLoHfaIcYy054BojUt2tuEdOMCj6-YFwQSp.jpg";
 // First five attraction photos; the rest remain unchanged until reviewed.
 const PHOTO_BATCH_1 = {
   "default-1": {
