@@ -1,9 +1,9 @@
 const PEOPLE=[["Hayley","👩"],["Caleb","👨"],["Suttonn","👧"],["Nox","🌸"]];
 const CATS=[
-{key:"must",label:"MUST DO",icon:"⭐",color:"#5caa7d",tint:"#e4f4e8"},
-{key:"want",label:"WANT TO DO",icon:"💛",color:"#e4ab5f",tint:"#fff3df"},
-{key:"no",label:"DON'T CARE",icon:"😴",color:"#d38c80",tint:"#f9ebe7"},
-{key:"unknown",label:"DON'T KNOW WHAT THIS IS",icon:"❔",color:"#9791bf",tint:"#f0ecfa"},
+{key:"must",label:"MUST DO",icon:"💚",color:"#42a36b",tint:"#e4f4e8"},
+{key:"want",label:"WANT TO DO",icon:"★",color:"#e58b2a",tint:"#fff3df"},
+{key:"no",label:"DON'T CARE",icon:"✕",color:"#cf4747",tint:"#f9ebe7"},
+{key:"unknown",label:"DON'T KNOW WHAT THIS IS",icon:"?",color:"#6d4ba8",tint:"#f0ecfa"},
 {key:"unsorted",label:"UNSORTED",icon:"📥",color:"#83a99b",tint:"#ecf4ef"}
 ];
 const KEY="gatlinburg2026-v1";
