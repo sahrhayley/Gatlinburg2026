@@ -149,3 +149,5 @@
 /* Header planning labels: readable, consistent with navigation. */
 .header-planner-tabs button{font-size:16px;font-weight:700;line-height:1.2}
 @media(max-width:600px){.header-planner-tabs button{font-size:16px}}
+
+.cost-row{flex-wrap:wrap}.cost-row .cost-note{flex:0 0 100%;font-size:12px;color:#687e70;line-height:1.4;padding-left:32px}.cost-note a{color:#176c56;font-weight:700}
