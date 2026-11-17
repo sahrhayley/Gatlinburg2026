@@ -318,6 +318,14 @@ const ACTIVITY_HOURS = {
  "Ober Mountain": {open:"",close:""},
  "Cades Cove": {open:"Sunrise",close:"Sunset"}
 };
+function displayClockTime(value){
+ const match=String(value??"").trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+ if(!match)return value??"";
+ let hour=Number(match[1]),minute=Number(match[2]);
+ if(hour>23||minute>59)return value;
+ if(match[3]){if(hour<1||hour>12)return value;hour=hour%12+(match[3].toUpperCase()==="PM"?12:0);}
+ return (hour%12||12)+":"+String(minute).padStart(2,"0")+(hour>=12?" PM":" AM");
+}
 function getActivityHours(stop,activity){
  const defaults=ACTIVITY_HOURS[activity?.name]||{};
  return {open:stop.open??defaults.open??"",close:stop.close??defaults.close??""};
@@ -366,7 +374,7 @@ function renderPlanner(){
  const a=state.activities.find(x=>x.id===stop.id);
  const duration=Math.max(0,Number(stop.duration)||0),travel=Math.max(0,Number(stop.travel)||0);
  const begin=timeLabel(cursor);cursor+=duration;const end=timeLabel(cursor);cursor+=travel;const hours=getActivityHours(stop,a);
- return '<div class="planning-row itinerary-row"><div class="itinerary-top"><label class="check-name"><input type="checkbox" data-stop-check="'+i+'" '+(stop.done?"checked":"")+'><span><strong class="'+(stop.done?"done-stop":"")+'">'+safe(a?.name||"Removed activity")+'</strong><small>'+safe(begin)+' – '+safe(end)+'</small></span></label><button class="secondary-button" data-stop-remove="'+i+'" type="button">Remove</button></div><div class="itinerary-fields"><label>Opens<input class="input" type="text" placeholder="Unknown" data-stop-open="'+i+'" value="'+safe(hours.open)+'"></label><label>Closes<input class="input" type="text" placeholder="Unknown" data-stop-close="'+i+'" value="'+safe(hours.close)+'"></label><label>Stay (min)<input class="input" type="number" min="0" step="5" data-stop-duration="'+i+'" value="'+duration+'"></label><label>Travel to next (min)<input class="input" type="number" min="0" step="5" data-stop-travel="'+i+'" value="'+travel+'"></label><div class="move-stop"><button type="button" data-stop-up="'+i+'" '+(i===0?"disabled":"")+'>↑</button><button type="button" data-stop-down="'+i+'" '+(i===rows.length-1?"disabled":"")+'>↓</button></div></div></div>';
+ return '<div class="planning-row itinerary-row"><div class="itinerary-top"><label class="check-name"><input type="checkbox" data-stop-check="'+i+'" '+(stop.done?"checked":"")+'><span><strong class="'+(stop.done?"done-stop":"")+'">'+safe(a?.name||"Removed activity")+'</strong><small>'+safe(begin)+' – '+safe(end)+'</small></span></label><button class="secondary-button" data-stop-remove="'+i+'" type="button">Remove</button></div><div class="itinerary-fields"><label>Opens<input class="input" type="text" placeholder="Unknown" data-stop-open="'+i+'" value="'+safe(displayClockTime(hours.open))+'"></label><label>Closes<input class="input" type="text" placeholder="Unknown" data-stop-close="'+i+'" value="'+safe(displayClockTime(hours.close))+'"></label><label>Stay (min)<input class="input" type="number" min="0" step="5" data-stop-duration="'+i+'" value="'+duration+'"></label><label>Travel to next (min)<input class="input" type="number" min="0" step="5" data-stop-travel="'+i+'" value="'+travel+'"></label><div class="move-stop"><button type="button" data-stop-up="'+i+'" '+(i===0?"disabled":"")+'>↑</button><button type="button" data-stop-down="'+i+'" '+(i===rows.length-1?"disabled":"")+'>↓</button></div></div></div>';
  }).join("")||'<p class="empty-plan">No stops yet. Choose an activity and add it above.</p>';
  $("#plannerStopCount").textContent=rows.length;
  $("#plannerFinish").textContent=rows.length?timeLabel(cursor-Math.max(0,Number(rows.at(-1).travel)||0)):"—";
