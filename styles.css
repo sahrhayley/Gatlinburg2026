@@ -128,3 +128,13 @@
 .tabs .tab.selected{background:#173e39;color:white}
 @media(max-width:700px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.tabs .tab{min-height:52px}}
 @media(max-width:390px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Two equal-size planning tabs in the original sync-status location, not the main navigation. */
+.header-planner-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:245px}
+.header-planner-tabs button{width:100%;min-height:40px;padding:9px 12px;font-size:13px;line-height:1.25;text-align:center;white-space:nowrap}
+.header-planner-tabs button.selected{background:#c9ead5;color:#173e39;border-color:#c9ead5}
+.tabs{display:flex!important;grid-template-columns:none}
+.tabs .tab{width:auto;min-height:unset;display:inline-flex;flex:initial}
+@media(max-width:700px){.tabs{display:flex!important;grid-template-columns:none}}
+@media(max-width:390px){.tabs{display:flex!important;grid-template-columns:none}}
+@media(max-width:600px){.header-planner-tabs{order:0;width:auto;min-width:0;flex:1 1 230px}.header-planner-tabs button{font-size:12px;padding:8px 6px}}
