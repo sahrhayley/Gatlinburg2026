@@ -96,6 +96,25 @@ async function connectSharedFamily(){
   if(!syncPoll)syncPoll=setInterval(async()=>{await flushSync();await refreshFamily();},12000);
  }catch(err){textStatus("Family database unavailable — retrying",true);console.error("Family connection",err);}
 }
+function exportFamilyBackup(){
+ const snapshot={
+  format:"gatlinburg-family-backup-v1",
+  exportedAt:new Date().toISOString(),
+  note:"Includes local votes and pending changes. Database votes must also be exported from Supabase for a complete independent backup.",
+  activities:state.activities.map(a=>({id:a.id,name:a.name,category:a.category,area:a.area,photo:a.photo||""})),
+  votes:state.votes,
+  deletedIds:state.deletedIds,
+  pendingOperations:syncQueue,
+  planning:planning
+ };
+ const blob=new Blob([JSON.stringify(snapshot,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement("a");
+ link.href=url;link.download="gatlinburg-backup-"+new Date().toISOString().slice(0,10)+".json";
+ document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ showToast("Local backup downloaded. Export Supabase votes separately.");
+}
 function showSyncDialog(){
  $("#syncShade").classList.remove("hidden");
  $("#syncMessage").textContent=syncQueue.length?"Pending offline changes: "+syncQueue.length:"Family syncing is automatic.";
@@ -340,7 +359,7 @@ $("#plannerRows").addEventListener("click",e=>{const btn=e.target.closest("[data
 document.querySelectorAll("[data-top-view]").forEach(b=>b.addEventListener("click",()=>showTopView(b.dataset.topView)));
 $("#backToBoard").addEventListener("click",()=>{showTopView("board");render();});
 
-load();initFilter();render();void connectSharedFamily();
+load();initFilter();render();$("#backupDataBtn").addEventListener("click",exportFamilyBackup);void connectSharedFamily();
 // Future deployments are detected on already-open pages, without changing the URL.
 const RUNNING_SITE_VERSION="18";
 async function checkSiteVersion(){
