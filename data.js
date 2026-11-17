@@ -116,6 +116,11 @@ window.GATLINBURG_ACTIVITIES = [
 ["State Line (TN–NC)","Scenic spots","📍","Great Smoky Mountains"],
 ["Hangman's Dome","Games & rides","🎯","Gatlinburg"]
 ].map((a,i)=>({id:"default-"+(i+1),name:a[0],category:window.gatlinburgCategoryName(a[1],a[0]),emoji:a[2],area:a[3],photo:""}));
+// Separate Ober Mountain activities. Existing IDs and votes remain untouched.
+window.GATLINBURG_ACTIVITIES.push(
+  {id:"default-91",name:"Ice Skating at Ober Mountain",category:"Games, rides & entertainment",emoji:"⛸️",area:"Gatlinburg",photo:""},
+  {id:"default-92",name:"Alpine Slide at Ober Mountain",category:"Games, rides & entertainment",emoji:"🛷",area:"Gatlinburg",photo:""}
+);
 // First five attraction photos; the rest remain unchanged until reviewed.
 const PHOTO_BATCH_1 = {
   "default-1": {
