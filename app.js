@@ -20,7 +20,20 @@ function persist(){try{localStorage.setItem(KEY,JSON.stringify({profile:state.pr
 function voteFor(person,id){return CATS.some(c=>c.key===state.votes?.[person]?.[id])?state.votes[person][id]:"unsorted";}
 function setVote(id,key){if(!CATS.some(c=>c.key===key))return;if(!state.votes[state.profile])state.votes[state.profile]={};if(key==="unsorted")delete state.votes[state.profile][id];else state.votes[state.profile][id]=key;persist();render();}
 function totalFor(key){return state.activities.filter(a=>voteFor(state.profile,a.id)===key).length;}
-function photoMarkup(a){const valid=/^(https:\/\/|data:image\/|\.\/images\/|images\/)/i.test(a.photo||"");return valid?`<img loading="lazy" src="${safe(a.photo)}" alt="${safe(a.name)}" onerror="this.remove();this.parentElement.querySelector('.card-emoji').hidden=false">`:"";}
+const PHOTO_FALLBACKS={
+"default-42":["https://piratesvoyage.com/media/63fcd4e7dbca58e9d472e839/xlarge.webp"],
+"default-44":["https://cdn2.smokymountains.com/uploads/2013/09/Comedy-Barn-Pigeon-Forge-12.jpg"],
+"default-83":["https://a-us.storyblok.com/f/1018389/1920x1080/7fd8678701/homepage-winterfest-blog-image-1920-x-1080.jpg/m/2048x1536/smart/filters%3Aquality%2890%29"],
+"default-85":["https://i.postimg.cc/13Cqfwmp/dollywoodchristmas.jpg"],
+"default-90":["https://www.greatsmokies.com/wp-content/uploads/2018/06/TwoAtStateLine900.jpg"]
+};
+function photoMarkup(a){
+const valid=/^(https:\/\/|data:image\/|\.\/images\/|images\/)/i.test(a.photo||"");
+if(!valid)return "";
+const urls=[a.photo,...(PHOTO_FALLBACKS[a.id]||[])];
+for(const u of [...urls]){if(/^https:\/\//i.test(u))urls.push("https://wsrv.nl/?url="+encodeURIComponent(u)+"&w=900");}
+return `<img loading="lazy" src="${safe(urls[0])}" data-photo-options="${safe(JSON.stringify(urls))}" data-photo-index="0" alt="${safe(a.name)}" onerror="const options=JSON.parse(this.dataset.photoOptions);const next=Number(this.dataset.photoIndex)+1;if(next<options.length){this.dataset.photoIndex=String(next);this.src=options[next];}else{this.remove();this.parentElement.querySelector('.card-emoji').hidden=false;}">`;
+}
 const palette=["#d5e7e4","#eedec7","#e2e2ee","#d4e6d2","#f6decf","#d9e8ee","#ece5d5"];
 function renderProfiles(){const target=$("#profiles");target.innerHTML=PEOPLE.map(([name,emoji])=>`<button type="button" class="profile ${state.profile===name?"selected":""}" data-person="${name}" aria-pressed="${state.profile===name}"><span class="profile-face">${emoji}</span><span>${name}<small class="profile-sub">${name===state.profile?"Currently choosing":"Tap to choose"}</small></span></button>`).join("");}
 function renderTabs(){$$(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.view===state.view)});$("#boardView").classList.toggle("hidden",state.view!=="board");$("#matchesView").classList.toggle("hidden",state.view!=="matches");$("#compareView").classList.toggle("hidden",state.view!=="compare");}
