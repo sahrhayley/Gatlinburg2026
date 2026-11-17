@@ -56,3 +56,27 @@
 
 /* Bucket category icon colors */
 .sorting-layout .bucket-emoji{color:var(--accent);font-weight:900}
+
+/* Compact activity details and complete-card drag preview */
+.sorting-layout .card-content{padding:8px 9px 9px}
+.sorting-layout .card-type{font-size:9px;letter-spacing:.6px;margin-bottom:3px}
+.sorting-layout .card h3{font-size:13px;line-height:1.2;min-height:0;margin:0 0 7px}
+.sorting-layout .card-bottom{gap:5px}
+.sorting-layout .card-bottom select{padding:6px 5px;min-height:30px;font-size:10px}
+.sorting-layout .photo-search{padding:6px 8px}
+.card.drag-preview{
+  position:fixed;left:0;top:0;z-index:999;pointer-events:none;
+  margin:0;opacity:.97;transform:translate3d(0,0,0) rotate(2deg);
+  box-shadow:0 16px 36px rgba(14,50,40,.32);overflow:hidden;
+}
+.drag-preview .card-image{height:110px}
+.drag-preview .card-content{padding:7px 9px}
+.drag-preview .card-bottom{display:none}
+.drag-preview .card h3{margin-bottom:1px;min-height:0}
+@media(max-width:700px){
+  .sorting-layout .card-content{padding:7px 8px 8px}
+  .sorting-layout .card-type{font-size:8px;margin-bottom:3px}
+  .sorting-layout .card h3{font-size:12px;margin:0 0 6px;line-height:1.2}
+  .sorting-layout .card-bottom select{font-size:9px;padding:5px 4px;min-height:29px}
+  .drag-preview .card-image{height:100px}
+}
