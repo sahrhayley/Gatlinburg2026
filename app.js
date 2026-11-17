@@ -313,6 +313,15 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDialog("modalS
 /* Development-only cost and itinerary tools. Saved independently from family votes. */
 const PLAN_STORAGE_KEY="gatlinburg-planning-v1";
 const DURATION_ESTIMATES=Object.fromEntries((window.GATLINBURG_DURATION_ESTIMATES||[]).map(x=>[x.id,x.minutes]));
+const ACTIVITY_HOURS = {
+ "Anakeesta": {open:"10:00",close:"21:00"},
+ "Ober Mountain": {open:"",close:""},
+ "Cades Cove": {open:"Sunrise",close:"Sunset"}
+};
+function getActivityHours(stop,activity){
+ const defaults=ACTIVITY_HOURS[activity?.name]||{};
+ return {open:stop.open??defaults.open??"",close:stop.close??defaults.close??""};
+}
 let planning={costs:{},included:{},days:{},day:"",start:{}};
 try{const stored=JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY)||"null");if(stored&&typeof stored==="object")planning={...planning,...stored};}catch(e){console.warn("Planning data could not load",e);}
 let topView="board",costFilter="all",costPerson=state.profile;
@@ -356,8 +365,8 @@ function renderPlanner(){
  $("#plannerRows").innerHTML=rows.map((stop,i)=>{
  const a=state.activities.find(x=>x.id===stop.id);
  const duration=Math.max(0,Number(stop.duration)||0),travel=Math.max(0,Number(stop.travel)||0);
- const begin=timeLabel(cursor);cursor+=duration;const end=timeLabel(cursor);cursor+=travel;
- return '<div class="planning-row itinerary-row"><div class="itinerary-top"><label class="check-name"><input type="checkbox" data-stop-check="'+i+'" '+(stop.done?"checked":"")+'><span><strong class="'+(stop.done?"done-stop":"")+'">'+safe(a?.name||"Removed activity")+'</strong><small>'+safe(begin)+' – '+safe(end)+'</small></span></label><button class="secondary-button" data-stop-remove="'+i+'" type="button">Remove</button></div><div class="itinerary-fields"><label>Stay (min)<input class="input" type="number" min="0" step="5" data-stop-duration="'+i+'" value="'+duration+'"></label><label>Travel to next (min)<input class="input" type="number" min="0" step="5" data-stop-travel="'+i+'" value="'+travel+'"></label><div class="move-stop"><button type="button" data-stop-up="'+i+'" '+(i===0?"disabled":"")+'>↑</button><button type="button" data-stop-down="'+i+'" '+(i===rows.length-1?"disabled":"")+'>↓</button></div></div></div>';
+ const begin=timeLabel(cursor);cursor+=duration;const end=timeLabel(cursor);cursor+=travel;const hours=getActivityHours(stop,a);
+ return '<div class="planning-row itinerary-row"><div class="itinerary-top"><label class="check-name"><input type="checkbox" data-stop-check="'+i+'" '+(stop.done?"checked":"")+'><span><strong class="'+(stop.done?"done-stop":"")+'">'+safe(a?.name||"Removed activity")+'</strong><small>'+safe(begin)+' – '+safe(end)+'</small></span></label><button class="secondary-button" data-stop-remove="'+i+'" type="button">Remove</button></div><div class="itinerary-fields"><label>Opens<input class="input" type="text" placeholder="Unknown" data-stop-open="'+i+'" value="'+safe(hours.open)+'"></label><label>Closes<input class="input" type="text" placeholder="Unknown" data-stop-close="'+i+'" value="'+safe(hours.close)+'"></label><label>Stay (min)<input class="input" type="number" min="0" step="5" data-stop-duration="'+i+'" value="'+duration+'"></label><label>Travel to next (min)<input class="input" type="number" min="0" step="5" data-stop-travel="'+i+'" value="'+travel+'"></label><div class="move-stop"><button type="button" data-stop-up="'+i+'" '+(i===0?"disabled":"")+'>↑</button><button type="button" data-stop-down="'+i+'" '+(i===rows.length-1?"disabled":"")+'>↓</button></div></div></div>';
  }).join("")||'<p class="empty-plan">No stops yet. Choose an activity and add it above.</p>';
  $("#plannerStopCount").textContent=rows.length;
  $("#plannerFinish").textContent=rows.length?timeLabel(cursor-Math.max(0,Number(rows.at(-1).travel)||0)):"—";
@@ -368,7 +377,7 @@ $("#costRows").addEventListener("change",e=>{const amount=e.target.dataset.costA
 $("#plannerDate").addEventListener("change",e=>{planning.day=e.target.value;savePlanning();renderPlanner();});
 $("#plannerStart").addEventListener("change",e=>{planning.start[dayKey()]=e.target.value;savePlanning();renderPlanner();});
 $("#plannerAddBtn").addEventListener("click",()=>{const id=$("#plannerAddActivity").value;if(!id)return;(planning.days[dayKey()]??=[]).push({id,duration:DURATION_ESTIMATES[id]??60,travel:15,done:false});savePlanning();renderPlanner();});
-$("#plannerRows").addEventListener("change",e=>{const rows=planning.days[dayKey()]||[];const t=e.target.dataset;const index=Number(t.stopDuration??t.stopTravel??t.stopCheck);if(!rows[index])return;if(t.stopDuration!==undefined)rows[index].duration=Math.max(0,Number(e.target.value)||0);if(t.stopTravel!==undefined)rows[index].travel=Math.max(0,Number(e.target.value)||0);if(t.stopCheck!==undefined)rows[index].done=e.target.checked;savePlanning();renderPlanner();});
+$("#plannerRows").addEventListener("change",e=>{const rows=planning.days[dayKey()]||[];const t=e.target.dataset;const index=Number(t.stopDuration??t.stopTravel??t.stopCheck??t.stopOpen??t.stopClose);if(!rows[index])return;if(t.stopDuration!==undefined)rows[index].duration=Math.max(0,Number(e.target.value)||0);if(t.stopTravel!==undefined)rows[index].travel=Math.max(0,Number(e.target.value)||0);if(t.stopCheck!==undefined)rows[index].done=e.target.checked;if(t.stopOpen!==undefined)rows[index].open=e.target.value;if(t.stopClose!==undefined)rows[index].close=e.target.value;savePlanning();renderPlanner();});
 $("#plannerRows").addEventListener("click",e=>{const btn=e.target.closest("[data-stop-remove],[data-stop-up],[data-stop-down]");if(!btn)return;const rows=planning.days[dayKey()]||[];const t=btn.dataset;const i=Number(t.stopRemove??t.stopUp??t.stopDown);if(t.stopRemove!==undefined)rows.splice(i,1);else{const j=i+(t.stopUp!==undefined?-1:1);if(j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];}savePlanning();renderPlanner();});
 document.querySelectorAll("[data-top-view]").forEach(b=>b.addEventListener("click",()=>showTopView(b.dataset.topView)));
 $("#backToBoard").addEventListener("click",()=>{showTopView("board");render();});
