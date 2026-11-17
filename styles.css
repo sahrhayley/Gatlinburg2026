@@ -82,3 +82,8 @@
   .sorting-layout .card-bottom select{font-size:9px;padding:5px 4px;min-height:29px}
   .drag-preview .card-image{height:100px}
 }
+
+/* Emoji-enhanced, user-defined activity types */
+.sorting-layout .card-type{display:flex;align-items:flex-start;gap:5px;line-height:1.3;text-transform:none;letter-spacing:0;font-size:10px;margin-bottom:5px}
+.sorting-layout .card-type .type-emoji{font-size:15px;line-height:1;flex-shrink:0}
+@media(max-width:700px){.sorting-layout .card-type{font-size:9px;gap:4px;margin-bottom:4px}.sorting-layout .card-type .type-emoji{font-size:14px}}
