@@ -1,5 +1,5 @@
 const PEOPLE=[["Hayley","👩"],["Caleb","👨"],["Suttonn","👧"],["Nox","🌸"]];
-const avatarFor = (name, emoji) => `<img class="family-avatar" src="./images/${name.toLowerCase()}.png" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode(${JSON.stringify("👤")}))">`;
+const avatarFor = (name, emoji) => `<img class="family-avatar" src="./images/backgrounds/avatars/${name.toLowerCase()}.png" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode(${JSON.stringify("👤")}))">`;
 const CATS=[
 {key:"must",label:"MUST DO",icon:"💚",color:"#42a36b",tint:"#e4f4e8"},
 {key:"want",label:"WANT TO DO",icon:"★",color:"#e58b2a",tint:"#fff3df"},
