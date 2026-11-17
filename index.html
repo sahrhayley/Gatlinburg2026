@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="./styles.css?v=7" />
   <script src="./config.js"></script>
   <script src="./data.js?v=19"></script>
-  <script type="module" src="./app.js?v=13"></script>
+  <script type="module" src="./app.js?v=14"></script>
 </head>
 <body>
   <header class="site-header">
@@ -94,17 +94,8 @@
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
       <button id="closeSync" class="modal-close" type="button" aria-label="Close">✕</button>
       <h2 id="syncTitle">Family sync</h2>
-      <p class="modal-description" id="syncHelp">Your choices sync across family devices once connected.</p>
-      <div id="syncConnectForm">
-        <label for="tripCode">Family code (leave blank to create a new family trip)</label>
-        <input class="input" id="tripCode" type="text" placeholder="Paste family code" autocomplete="off" autocapitalize="off" />
-        <div class="modal-buttons"><button class="secondary-button" type="button" id="disconnectBtn">Leave trip</button><button class="primary-button" type="button" id="connectBtn">Connect</button></div>
-      </div>
-      <div id="syncConnected" class="hidden">
-        <label>Family code</label><div class="share-code"><code id="familyCode"></code><button class="secondary-button" id="copyLinkBtn" type="button">Copy invite link</button></div>
-        <p class="modal-description">Share this invite with Caleb and the girls. Votes sync automatically when online, with offline changes queued locally.</p>
-        <div class="modal-buttons"><button class="secondary-button" type="button" id="leaveTripBtn">Leave trip on this device</button></div>
-      </div>
+      <p class="modal-description" id="syncHelp">Your choices sync automatically across family devices.</p>
+      <p class="modal-description">Everyone uses the same website. Select your name and your choices save automatically to the shared database. Offline changes are queued for retry.</p>
       <div id="syncMessage" class="inline-message" role="status"></div>
     </div>
   </div>
