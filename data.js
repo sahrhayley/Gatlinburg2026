@@ -1,4 +1,4 @@
-window.GATLINBURG_CATEGORIES = [{"name":"Attractions & experiences","emoji":"🎢"},{"name":"Games, rides & entertainment","emoji":"🎮"},{"name":"Nature & scenic adventures","emoji":"🌲"},{"name":"Restaurants","emoji":"🍽️"},{"name":"Desserts & treats","emoji":"🍩"},{"name":"Christmas & seasonal activities","emoji":"🎄"},{"name":"Shopping & exploring","emoji":"🛍️"},{"name":"Adults","emoji":"🍹"}];
+window.GATLINBURG_CATEGORIES = [{"name":"Attractions & experiences","emoji":"🎢"},{"name":"Games, rides & entertainment","emoji":"🎮"},{"name":"Christmas & seasonal activities","emoji":"🎄"},{"name":"Desserts & treats","emoji":"🍩"},{"name":"Nature & scenic adventures","emoji":"🌲"},{"name":"Restaurants","emoji":"🍽️"},{"name":"Shopping & exploring","emoji":"🛍️"},{"name":"Adults","emoji":"🍹"}];
 const dessertNames = new Set([
   "The Donut Friar","Ole Smoky Candy Kitchen","The Crazy Mason Milkshake Bar",
   "Byrd's Famous Cookies","Gatlinburg Goo Goo Chocolate Co.",
