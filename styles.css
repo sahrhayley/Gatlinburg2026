@@ -151,3 +151,6 @@
 @media(max-width:600px){.header-planner-tabs button{font-size:16px}}
 
 .cost-row{flex-wrap:wrap}.cost-row .cost-note{flex:0 0 100%;font-size:12px;color:#687e70;line-height:1.4;padding-left:32px}.cost-note a{color:#176c56;font-weight:700}
+
+/* Planner durations displayed as hours and minutes */
+.duration-pair{display:flex;align-items:center;gap:6px;white-space:nowrap}.duration-pair input{width:66px;min-width:0;text-align:center;padding:8px 5px}
