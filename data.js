@@ -134,9 +134,9 @@ const PHOTO_BATCH_1 = {
     "source": "https://www.gatlinburg.com/listing/the-gatlinburg-tram-at-ober-mountain/781/"
   },
   "default-4": {
-    "url": "https://static.wixstatic.com/media/4c949a_3d5d322a32e040c4bb855349bb10014b~mv2.jpg/v1/fill/w_980%2Ch_658%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/4c949a_3d5d322a32e040c4bb855349bb10014b~mv2.jpg",
-    "credit": "The Mindful Moderator",
-    "source": "https://www.themindfulmoderator.com/post/how-to-get-the-most-bang-for-your-buck-in-gatlinburg-and-pigeon-forge"
+    "url": "https://static.citylifestyle.com/articles/hooray-for-dollywood-2/DJI_0616-1600.jpg?v=1",
+    "credit": "City Lifestyle",
+    "source": "https://citylifestyle.com/articles/hooray-for-dollywood-2"
   },
   "default-5": {
     "url": "https://pub-a4572e6ecae942889eeac3241a2da909.r2.dev/listings/the-island-in-pigeon-forge-pigeon-forge/7900e2fad0ce-1-full.webp",
