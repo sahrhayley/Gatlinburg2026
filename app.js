@@ -279,6 +279,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDialog("modalS
 
 /* Development-only cost and itinerary tools. Saved independently from family votes. */
 const PLAN_STORAGE_KEY="gatlinburg-planning-v1";
+const DURATION_ESTIMATES=Object.fromEntries((window.GATLINBURG_DURATION_ESTIMATES||[]).map(x=>[x.id,x.minutes]));
 let planning={costs:{},included:{},days:{},day:"",start:{}};
 try{const stored=JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY)||"null");if(stored&&typeof stored==="object")planning={...planning,...stored};}catch(e){console.warn("Planning data could not load",e);}
 let topView="board",costFilter="all",costPerson=state.profile;
@@ -333,7 +334,7 @@ $("#costRankFilter").addEventListener("change",e=>{costFilter=e.target.value;ren
 $("#costRows").addEventListener("change",e=>{const amount=e.target.dataset.costAmount,check=e.target.dataset.costCheck;if(amount){planning.costs[amount]=Math.max(0,Number(e.target.value)||0);}if(check){planning.included[check]=e.target.checked;}savePlanning();renderCosts();});
 $("#plannerDate").addEventListener("change",e=>{planning.day=e.target.value;savePlanning();renderPlanner();});
 $("#plannerStart").addEventListener("change",e=>{planning.start[dayKey()]=e.target.value;savePlanning();renderPlanner();});
-$("#plannerAddBtn").addEventListener("click",()=>{const id=$("#plannerAddActivity").value;if(!id)return;(planning.days[dayKey()]??=[]).push({id,duration:60,travel:15,done:false});savePlanning();renderPlanner();});
+$("#plannerAddBtn").addEventListener("click",()=>{const id=$("#plannerAddActivity").value;if(!id)return;(planning.days[dayKey()]??=[]).push({id,duration:DURATION_ESTIMATES[id]??60,travel:15,done:false});savePlanning();renderPlanner();});
 $("#plannerRows").addEventListener("change",e=>{const rows=planning.days[dayKey()]||[];const t=e.target.dataset;const index=Number(t.stopDuration??t.stopTravel??t.stopCheck);if(!rows[index])return;if(t.stopDuration!==undefined)rows[index].duration=Math.max(0,Number(e.target.value)||0);if(t.stopTravel!==undefined)rows[index].travel=Math.max(0,Number(e.target.value)||0);if(t.stopCheck!==undefined)rows[index].done=e.target.checked;savePlanning();renderPlanner();});
 $("#plannerRows").addEventListener("click",e=>{const btn=e.target.closest("[data-stop-remove],[data-stop-up],[data-stop-down]");if(!btn)return;const rows=planning.days[dayKey()]||[];const t=btn.dataset;const i=Number(t.stopRemove??t.stopUp??t.stopDown);if(t.stopRemove!==undefined)rows.splice(i,1);else{const j=i+(t.stopUp!==undefined?-1:1);if(j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];}savePlanning();renderPlanner();});
 document.querySelectorAll("[data-top-view]").forEach(b=>b.addEventListener("click",()=>showTopView(b.dataset.topView)));
