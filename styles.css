@@ -145,3 +145,7 @@
 .header-planner-tabs button{appearance:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:100%;height:38px;min-height:38px;margin:0;padding:0 12px;border:1px solid rgba(255,255,255,.35);border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font:600 13px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0;text-transform:none;white-space:nowrap}
 .header-planner-tabs button.selected{background:#c9ead5;color:#173e39;border-color:#c9ead5}
 @media(max-width:600px){.header-planner-tabs{order:0;flex:0 0 220px;width:220px;min-width:220px}.header-planner-tabs button{height:38px;min-height:38px;font-size:13px;padding:0 8px}}
+
+/* Header planning labels: readable, consistent with navigation. */
+.header-planner-tabs button{font-size:16px;font-weight:700;line-height:1.2}
+@media(max-width:600px){.header-planner-tabs button{font-size:16px}}
