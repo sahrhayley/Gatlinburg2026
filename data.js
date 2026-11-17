@@ -119,7 +119,7 @@ window.GATLINBURG_ACTIVITIES = [
 // First five attraction photos; the rest remain unchanged until reviewed.
 const PHOTO_BATCH_1 = {
   "default-1": {
-    "url": "https://cdn.tripster.com/media/product/gallery/original/Anakeesta_%2874547%29.jpg",
+    "url": "./images/anakeesta-playground.svg",
     "credit": "Tripster",
     "source": "https://www.tripster.com/detail/anakeesta-gatlinburg"
   },
