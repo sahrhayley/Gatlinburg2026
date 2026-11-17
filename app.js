@@ -18,8 +18,95 @@ const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"
 function textStatus(t,error=false){$("#syncStatus").textContent=t;$("#statusDot").className="status-dot"+(error?" error":"");}
 function load(){try{let saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object"){state.profile=PEOPLE.some(p=>p[0]===saved.profile)?saved.profile:"Hayley";state.active=CATS.some(c=>c.key===saved.active)?saved.active:"unsorted";state.deletedIds=Array.isArray(saved.deletedIds)?saved.deletedIds.filter(id=>typeof id==="string"):[];state.activities=seed.filter(a=>!state.deletedIds.includes(a.id)).map(a=>({...a}));if(Array.isArray(saved.activities)){const ids=new Set(state.activities.map(a=>a.id));for(const a of saved.activities){if(typeof a.id!=="string")continue;const existing=state.activities.find(x=>x.id===a.id);if(existing){if(!a.id.startsWith("default-")&&typeof a.photo==="string"&&a.photo.trim())existing.photo=a.photo;}else if(typeof a.name==="string"&&!ids.has(a.id)){state.activities.push({...a,category:window.gatlinburgCategoryName(a.category,a.name)});ids.add(a.id);}}}state.votes=saved.votes&&typeof saved.votes==="object"?saved.votes:{};}}catch(e){textStatus("Could not read saved data",true);console.error(e);}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify({profile:state.profile,active:state.active,activities:state.activities,votes:state.votes,deletedIds:state.deletedIds,updatedAt:new Date().toISOString()}));textStatus("Saved on this device");return true;}catch(e){textStatus("Save failed — storage full?",true);showToast("Could not save! Please free up browser storage.");console.error(e);return false;}}
+
+const SYNC_CODE_KEY="gatlinburg-family-code-v1";
+const SYNC_QUEUE_KEY="gatlinburg-pending-v1";
+let familyCode=localStorage.getItem(SYNC_CODE_KEY)||"";
+let syncQueue=JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)||"[]");
+let syncBusy=false, syncReady=false, syncPoll=null;
+const apiConfig=window.GATLINBURG_CONFIG||{};
+async function rpc(name,params={}){
+ const response=await fetch(apiConfig.supabaseUrl+"/rest/v1/rpc/"+name,{
+ method:"POST",headers:{"apikey":apiConfig.supabasePublishableKey,"Content-Type":"application/json"},body:JSON.stringify(params)});
+ const body=await response.json().catch(()=>null);
+ if(!response.ok)throw Error(body?.message||"Database error "+response.status);
+ return body;
+}
+function queueChange(kind,payload){
+ if(!familyCode)return;
+ const op={kind,payload,id:crypto.randomUUID()};
+ if(kind==="vote")syncQueue=syncQueue.filter(q=>!(q.kind==="vote"&&q.payload.person===payload.person&&q.payload.activity===payload.activity));
+ syncQueue.push(op);localStorage.setItem(SYNC_QUEUE_KEY,JSON.stringify(syncQueue));
+ textStatus("Saving to family database…");void flushSync();
+}
+async function flushSync(){
+ if(syncBusy||!familyCode||!navigator.onLine)return;
+ syncBusy=true;
+ try{
+  while(syncQueue.length){
+   const op=syncQueue[0];let name,args;
+   if(op.kind==="vote"){name="save_family_vote";args={p_person:op.payload.person,p_activity:op.payload.activity,p_choice:op.payload.choice};}
+   else if(op.kind==="add"){name="add_family_activity";args={p_activity:op.payload};}
+   else if(op.kind==="delete"){name="delete_family_activity";args={p_activity:op.payload.id,p_pin:op.payload.pin};}
+   else{syncQueue.shift();continue;}
+   await rpc(name,{p_code:familyCode,p_operation:op.id,...args});
+   syncQueue.shift();localStorage.setItem(SYNC_QUEUE_KEY,JSON.stringify(syncQueue));
+  }
+  textStatus("Saved to family database");
+ }catch(err){textStatus("Not synced — retrying",true);console.error("Family sync failed",err);}
+ finally{syncBusy=false;}
+}
+function mergeRemote(remote){
+ const pendingDeletes=new Set(syncQueue.filter(x=>x.kind==="delete").map(x=>x.payload.id));
+ const deleted=new Set([...(remote.deletedIds||[]),...pendingDeletes]);
+ const pendingAdds=syncQueue.filter(x=>x.kind==="add").map(x=>x.payload);
+ const custom=[...(remote.activities||[]),...pendingAdds];
+ const ids=new Set();
+ state.activities=[...seed,...custom].filter(a=>{
+  if(deleted.has(a.id)||ids.has(a.id))return false;ids.add(a.id);return true;
+ }).map(a=>({...a}));
+ state.deletedIds=[...deleted];
+ const votes={};
+ for(const v of remote.votes||[]){if(!votes[v.person])votes[v.person]={};votes[v.person][v.id]=v.choice;}
+ for(const op of syncQueue.filter(x=>x.kind==="vote")){
+  const {person,activity,choice}=op.payload;
+  if(!votes[person])votes[person]={};
+  if(choice==="unsorted")delete votes[person][activity];else votes[person][activity]=choice;
+ }
+ state.votes=votes;persist();render();
+}
+async function refreshFamily(){
+ if(!familyCode||syncBusy||!navigator.onLine)return;
+ try{const remote=await rpc("get_family_trip",{p_code:familyCode});mergeRemote(remote);syncReady=true;if(!syncQueue.length)textStatus("Saved to family database");}
+ catch(err){textStatus("Sync unavailable — retrying",true);console.error(err);}
+}
+async function connectFamily(code,create=false){
+ const cleaned=code.trim();
+ if(cleaned.length<24){showToast("Family code is too short");return;}
+ $("#syncMessage").textContent="Connecting…";
+ try{
+  if(create)await rpc("create_family_trip",{p_code:cleaned});
+  const remote=await rpc("get_family_trip",{p_code:cleaned});
+  // Import existing device rankings only for a brand-new trip. Never overwrite an existing family's choices.
+  if(create)await rpc("import_family_choices",{p_code:cleaned,p_payload:{activities:state.activities.filter(a=>a.id.startsWith("custom-")),votes:state.votes}});
+  familyCode=cleaned;localStorage.setItem(SYNC_CODE_KEY,cleaned);
+  syncReady=true;mergeRemote(create?await rpc("get_family_trip",{p_code:cleaned}):remote);
+  await flushSync();showSyncDialog();$("#syncMessage").textContent="Connected. Your family shares one database.";
+  if(!syncPoll)syncPoll=setInterval(async()=>{await flushSync();await refreshFamily();},12000);
+ }catch(err){$("#syncMessage").textContent="Connection failed: "+err.message;textStatus("Family sync failed",true);}
+}
+function showSyncDialog(){
+ $("#syncShade").classList.remove("hidden");
+ $("#syncConnectForm").classList.toggle("hidden",!!familyCode);
+ $("#syncConnected").classList.toggle("hidden",!familyCode);
+ $("#familyCode").textContent=familyCode||"";
+ $("#syncHelp").textContent=familyCode?"Connected to the family database. Share the invite link with other devices.":"Connect to the family's shared Gatlinburg database.";
+ $("#syncMessage").textContent=familyCode?"Pending changes: "+syncQueue.length:"";
+}
+window.addEventListener("online",async()=>{await flushSync();await refreshFamily();});
+
 function voteFor(person,id){return CATS.some(c=>c.key===state.votes?.[person]?.[id])?state.votes[person][id]:"unsorted";}
-function setVote(id,key){if(!CATS.some(c=>c.key===key))return;if(!state.votes[state.profile])state.votes[state.profile]={};if(key==="unsorted")delete state.votes[state.profile][id];else state.votes[state.profile][id]=key;persist();render();}
+function setVote(id,key){if(!CATS.some(c=>c.key===key))return;if(!state.votes[state.profile])state.votes[state.profile]={};if(key==="unsorted")delete state.votes[state.profile][id];else state.votes[state.profile][id]=key;persist();queueChange("vote",{person:state.profile,activity:id,choice:key});render();}
 function totalFor(key){return state.activities.filter(a=>voteFor(state.profile,a.id)===key).length;}
 const PHOTO_FALLBACKS={
 "default-42":["https://piratesvoyage.com/media/63fcd4e7dbca58e9d472e839/xlarge.webp"],
@@ -59,7 +146,7 @@ function deleteActivity(id){
  state.deletedIds=Array.from(new Set([...(state.deletedIds||[]),id]));
  state.activities=state.activities.filter(a=>a.id!==id);
  for(const votes of Object.values(state.votes)){if(votes&&typeof votes==="object")delete votes[id];}
- persist();render();showToast("Activity deleted");
+ persist();queueChange("delete",{id,pin});render();showToast("Activity deleted");
 }
 function initFilter(){$("#activityFilter").innerHTML='<option value="">All activity types</option>'+ACTIVITY_CATEGORIES.map(c=>`<option value="${safe(c.name)}">${safe(c.emoji)} ${safe(c.name)}</option>`).join("");}
 function downloadBackup(){const blob=new Blob([JSON.stringify({savedAt:new Date().toISOString(),...state},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="gatlinburg2026-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),500);}
@@ -181,12 +268,12 @@ $("#activityForm").addEventListener("submit",addActivity);
 $("#cancelModal").addEventListener("click",()=>closeDialog("modalShade"));
 $("#closeModal").addEventListener("click",()=>closeDialog("modalShade"));
 $("#modalShade").addEventListener("click",e=>{if(e.target.id==="modalShade")closeDialog("modalShade");});
-$("#syncSettingsBtn").addEventListener("click",()=>{$("#syncShade").classList.remove("hidden");$("#syncMessage").textContent="Shared syncing has not been connected yet. Your current rankings are saved locally on this device. We'll connect a separate Gatlinburg Supabase project before enabling this.";$("#syncConnectForm").classList.add("hidden");$("#syncConnected").classList.add("hidden");});
+$("#syncSettingsBtn").addEventListener("click",showSyncDialog);
 $("#closeSync").addEventListener("click",()=>closeDialog("syncShade"));
 $("#syncShade").addEventListener("click",e=>{if(e.target.id==="syncShade")closeDialog("syncShade");});
-$("#connectBtn").addEventListener("click",()=>showToast("Supabase connection is not configured yet"));
+$("#connectBtn").addEventListener("click",()=>{const code=$("#tripCode").value.trim();void connectFamily(code||crypto.randomUUID()+"-"+crypto.randomUUID(),!code);});
 $("#disconnectBtn").addEventListener("click",()=>closeDialog("syncShade"));
-$("#leaveTripBtn").addEventListener("click",()=>closeDialog("syncShade"));
-$("#copyLinkBtn").addEventListener("click",()=>showToast("Connect Supabase first"));
+$("#leaveTripBtn").addEventListener("click",()=>{if(!confirm("Disconnect this device from family syncing?"))return;familyCode="";syncReady=false;localStorage.removeItem(SYNC_CODE_KEY);if(syncPoll){clearInterval(syncPoll);syncPoll=null;}showSyncDialog();textStatus("Not connected to family database",true);});
+$("#copyLinkBtn").addEventListener("click",async()=>{const url=new URL(location.href);url.searchParams.set("family",familyCode);try{await navigator.clipboard.writeText(url.toString());showToast("Family invite link copied");}catch(e){prompt("Copy invite link",url.toString());}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDialog("modalShade");closeDialog("syncShade");}});
-load();initFilter();render();
+load();initFilter();render();const invite=new URLSearchParams(location.search).get("family");if(invite&&!familyCode){$("#tripCode").value=invite;showSyncDialog();$("#syncMessage").textContent="Tap Connect to join this family trip.";}else if(familyCode){void connectFamily(familyCode,false);}else{void connectFamily(crypto.randomUUID()+"-"+crypto.randomUUID(),true);}
