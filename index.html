@@ -9,22 +9,23 @@
   <meta name="description" content="Plan our Gatlinburg trip together." />
   <title>Gatlinburg 2026 · Our Family Adventure</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=3" />
-  <link rel="stylesheet" href="./styles.css?v=8" />
+  <link rel="stylesheet" href="./styles.css?v=9" />
   <script src="./config.js"></script>
   <script src="./data.js?v=20"></script>
-  <script type="module" src="./app.js?v=18"></script>
+  <script type="module" src="./app.js?v=19"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
       <div class="brand"><span class="brand-icon">⛰️</span> <span>GATLINBURG <em>2026</em></span></div>
       <div class="header-tools">
-        <span class="sync-label"><span class="status-dot" id="statusDot"></span><span id="syncStatus">Saved on this device</span></span>
+        <nav class="header-planner-tabs" aria-label="Planning tools"><button type="button" data-top-view="costs" id="costsTab">💵 Costs</button><button type="button" data-top-view="planner" id="plannerTab">🗓 Day planner</button></nav><span class="hidden" id="syncStatus" aria-live="polite"></span><span class="hidden" id="statusDot"></span>
         <button id="syncSettingsBtn" class="head-button" type="button">⚙ Sync</button>
       </div>
     </div>
   </header>
   <main class="page">
+    <section id="planningToolsView" class="hidden"><div class="planning-heading"><h2 id="planningTitle">Trip planning</h2><button type="button" id="backToBoard" class="secondary-button">← Back to bucket list</button></div><div id="costsPanel" class="hidden"><p class="subtitle">Enter estimated costs for your family. Check activities to include them in the adjusted total. Amounts are estimates you control, not live ticket prices.</p><div class="planning-controls"><label>Ranking <select id="costRankFilter" class="input"></select></label><label>Person <select id="costPerson" class="input"></select></label></div><div class="cost-totals"><div><small>All entered costs</small><strong id="costGrandTotal">$0.00</strong></div><div><small>Checked activities</small><strong id="costCheckedTotal">$0.00</strong></div></div><div id="costRows" class="planning-list"></div></div><div id="plannerPanel" class="hidden"><p class="subtitle">Choose a day, add activities, set start times and how long to stay. Travel minutes are editable estimates, not automatic directions.</p><div class="planning-controls"><label>Day <input class="input" type="date" id="plannerDate"></label><label>Start <input class="input" type="time" id="plannerStart" value="09:00"></label><label>Add activity <select class="input" id="plannerAddActivity"></select></label><button type="button" class="primary-button" id="plannerAddBtn">+ Add stop</button></div><div class="cost-totals"><div><small>Planned stops</small><strong id="plannerStopCount">0</strong></div><div><small>Estimated finish</small><strong id="plannerFinish">—</strong></div></div><div id="plannerRows" class="planning-list"></div></div></section>
     <section class="hero" aria-label="Smoky Mountains panorama">
       <div class="hero-copy"><h1>Bucket List</h1></div>
     </section>
