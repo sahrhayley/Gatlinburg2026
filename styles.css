@@ -70,9 +70,11 @@
   box-shadow:0 16px 36px rgba(14,50,40,.32);overflow:hidden;
 }
 .drag-preview .card-image{height:110px}
-.drag-preview .card-content{padding:7px 9px}
-.drag-preview .card-bottom{display:none}
-.drag-preview .card h3{margin-bottom:1px;min-height:0}
+.drag-preview .card-content{padding:8px 9px 9px}
+.drag-preview .card-type{font-size:9px;margin-bottom:3px}
+.drag-preview .card h3{font-size:13px;line-height:1.2;min-height:0;margin:0 0 7px}
+.drag-preview .card-bottom select{padding:6px 5px;min-height:30px;font-size:10px}
+.drag-preview .photo-search{padding:6px 8px}
 @media(max-width:700px){
   .sorting-layout .card-content{padding:7px 8px 8px}
   .sorting-layout .card-type{font-size:8px;margin-bottom:3px}
