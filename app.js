@@ -102,18 +102,28 @@ document.addEventListener("touchstart",e=>{
     pending.activated=true;
     dragStart(pending.x,pending.y,pending.card);
     if(navigator.vibrate)navigator.vibrate(12);
-  },180);
+  },50);
   touchPending=pending;
 },{passive:true});
 document.addEventListener("touchmove",e=>{
   if(!touchPending||e.touches.length!==1)return;
   const t=e.touches[0];
   if(!touchPending.activated){
-    if(Math.hypot(t.clientX-touchPending.x,t.clientY-touchPending.y)>9){
+    const dx=t.clientX-touchPending.x;
+    const dy=t.clientY-touchPending.y;
+    // Horizontal movement starts dragging immediately, without waiting.
+    // A quick vertical swipe still scrolls the list normally.
+    if(Math.abs(dx)>5 && Math.abs(dx)>Math.abs(dy)*1.1){
+      clearTimeout(touchPending.timer);
+      touchPending.activated=true;
+      dragStart(touchPending.x,touchPending.y,touchPending.card);
+    } else if(Math.abs(dy)>10){
       clearTimeout(touchPending.timer);
       touchPending=null;
+      return;
+    } else {
+      return;
     }
-    return;
   }
   e.preventDefault();
   dragMove(t.clientX,t.clientY);
