@@ -52,10 +52,19 @@
           <button id="addActivityBtn" class="primary-button" type="button">+ Add activity</button>
         </div>
       </div>
-      <div class="buckets" id="buckets" aria-label="Ranking categories"></div>
-      <div class="info-tip" id="boardTip">✦ <strong>Everything starts in Unsorted.</strong> Tap a category to see its activities. You can drag a card onto a category or use the dropdown on the card.</div>
-      <div class="cards" id="cards"></div>
-      <div class="empty-state hidden" id="emptyState"><span>🧭</span><h3>Nothing here yet</h3><p>Try another category, or add something new.</p></div>
+      <div class="sorting-layout">
+        <aside class="sorting-sidebar">
+          <div class="sorting-side-label">SORT INTO</div>
+          <div class="buckets" id="buckets" aria-label="Ranking categories"></div>
+          <p class="sorting-hint">Drop an activity into any category. Tap a category to view its cards.</p>
+        </aside>
+        <div class="sorting-content">
+          <div class="sorting-content-heading"><strong>ACTIVITIES</strong><span>Hold and drag a card to the left ↖</span></div>
+          <div class="info-tip" id="boardTip">✦ <strong>Everything starts in Unsorted.</strong> Move each activity into the category you choose.</div>
+          <div class="cards" id="cards"></div>
+          <div class="empty-state hidden" id="emptyState"><span>🧭</span><h3>Nothing here yet</h3><p>Try another category, or add something new.</p></div>
+        </div>
+      </div>
     </section>
     <section id="matchesView" class="hidden">
       <div class="toolbar"><div><h2>Where we agree ✨</h2><p class="subtitle">Shared favorites and things worth talking about.</p></div></div>
