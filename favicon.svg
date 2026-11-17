@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Gatlinburg mountain peaks</title>
+  <g fill="none" stroke="#273531" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 52 25.6 24 36.5 39"/>
+    <path d="M24.8 32.6 37.5 9 58 52"/>
+    <path d="m17.5 36.5 5.3-4.7 4.1 4.6 4.2-4.1 4.6 5.9"/>
+    <path d="m28 27 4.6-4.5 5.1 5.4 4.4-4.4 5.1 5"/>
+  </g>
+</svg>
