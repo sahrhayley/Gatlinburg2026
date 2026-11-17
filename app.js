@@ -306,7 +306,7 @@ function renderCosts(){
  $("#costRankFilter").innerHTML='<option value="all">All rankings</option>'+CATS.map(c=>'<option value="'+c.key+'" '+(c.key===costFilter?"selected":"")+'>'+safe(c.label)+'</option>').join("");
  const visible=state.activities.filter(a=>costFilter==="all"||rankOf(costPerson,a.id)===costFilter);
  const total=visible.reduce((sum,a)=>sum+(costFor(a.id)),0);
- const checked=visible.reduce((sum,a)=>sum+(planning.included[a.id]?(Number(planning.costs[a.id])||0):0),0);
+ const checked=visible.reduce((sum,a)=>sum+(planning.included[a.id]?costFor(a.id):0),0);
  $("#costGrandTotal").textContent=money(total);$("#costCheckedTotal").textContent=money(checked);
  $("#costRows").innerHTML=visible.map(a=>'<div class="planning-row cost-row"><label class="check-name"><input type="checkbox" data-cost-check="'+safe(a.id)+'" '+(planning.included[a.id]?"checked":"")+'><span><strong>'+safe(a.name)+'</strong><small>'+safe(statusLabel(rankOf(costPerson,a.id)))+' · '+safe(a.area)+'</small></span></label><label class="money-entry">$ <input type="number" min="0" step="0.01" inputmode="decimal" aria-label="Cost for '+safe(a.name)+'" data-cost-amount="'+safe(a.id)+'" value="'+safe(planning.costs[a.id]??COST_ESTIMATES[a.id]?.amount??"")+'" placeholder="0.00"></label><small class="cost-note">'+safe(COST_ESTIMATES[a.id]?.kind||"Custom")+': '+safe(COST_ESTIMATES[a.id]?.note||"Enter your own total")+(COST_ESTIMATES[a.id]?.source?' <a href="'+safe(COST_ESTIMATES[a.id].source)+'" target="_blank" rel="noopener noreferrer">Price source</a>':"")+'</small></div>').join("")||'<p>No activities in this ranking.</p>';
 }
