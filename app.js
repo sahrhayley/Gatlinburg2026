@@ -73,7 +73,7 @@ function mergeRemote(remote){
   if(!votes[person])votes[person]={};
   if(choice==="unsorted")delete votes[person][activity];else votes[person][activity]=choice;
  }
- state.votes=votes;persist();render();
+ state.votes=votes;persist();if(!drag&&!touchPending)render();
 }
 async function refreshFamily(){
  if(syncBusy||!navigator.onLine)return;
@@ -149,6 +149,7 @@ function initFilter(){$("#activityFilter").innerHTML='<option value="">All activ
 function downloadBackup(){const blob=new Blob([JSON.stringify({savedAt:new Date().toISOString(),...state},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="gatlinburg2026-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),500);}
 let drag=null;
 function dragStart(x,y,card){
+  cancelDrag();
   const id=card.dataset.id;
   if(!id)return;
   drag={id,x,y,moved:false,card};
@@ -163,26 +164,29 @@ function dragMove(x,y){
     drag.ghost.removeAttribute("data-id");
     drag.ghost.setAttribute("aria-hidden","true");
     drag.ghost.classList.add("drag-preview");
+    drag.ghost.style.pointerEvents="none";
+    drag.ghost.style.userSelect="none";
     drag.ghost.querySelectorAll("select").forEach(el=>{el.disabled=true;el.tabIndex=-1;});
     drag.ghost.querySelectorAll("a").forEach(el=>{el.removeAttribute("href");el.tabIndex=-1;});
     drag.ghost.style.width=Math.min(drag.card.getBoundingClientRect().width,245)+"px";
     document.body.append(drag.ghost);
     drag.card.style.opacity=".5";
   }
+  if(!drag?.ghost)return;
   drag.ghost.style.left=(x+12)+"px";
   drag.ghost.style.top=(y+10)+"px";
   document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));
-  document.elementFromPoint(x,y)?.closest("[data-bucket]")?.classList.add("drag-over");
+  document.elementFromPoint(x,y)?.closest(".bucket[data-bucket]")?.classList.add("drag-over");
 }
 function dragEnd(x,y){
   if(!drag)return;
   const id=drag.id;
-  const to=drag.moved?document.elementFromPoint(x,y)?.closest("[data-bucket]")?.dataset.bucket:null;
+  const to=drag.moved?document.elementFromPoint(x,y)?.closest(".bucket[data-bucket]")?.dataset.bucket:null;
   drag.ghost?.remove();
   if(drag.card)drag.card.style.opacity="";
   document.querySelectorAll(".bucket").forEach(el=>el.classList.remove("drag-over"));
   drag=null;
-  if(to){setVote(id,to);showToast("Moved to "+statusLabel(to));}
+  if(to){setVote(id,to);showToast("Moved to "+statusLabel(to));}else{render();}
 }
 function cancelDrag(){
   drag?.ghost?.remove();if(drag?.card)drag.card.style.opacity="";
@@ -195,16 +199,18 @@ document.addEventListener("pointerdown",e=>{
   if(e.pointerType==="touch"||e.button!==0)return;
   const card=cardFromEvent(e);
   if(!card)return;
-  card.setPointerCapture(e.pointerId);
   dragStart(e.clientX,e.clientY,card);
+  try{document.documentElement.setPointerCapture(e.pointerId);}catch(_){}
 });
 document.addEventListener("pointermove",e=>{if(drag&&e.pointerType!=="touch")dragMove(e.clientX,e.clientY);});
 document.addEventListener("pointerup",e=>{if(drag&&e.pointerType!=="touch")dragEnd(e.clientX,e.clientY);});
+window.addEventListener("blur",()=>{clearTimeout(touchPending?.timer);touchPending=null;cancelDrag();});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){clearTimeout(touchPending?.timer);touchPending=null;cancelDrag();}});
 document.addEventListener("pointercancel",e=>{if(e.pointerType!=="touch")cancelDrag();});
 // On iPad/iPhone, hold briefly to pick up a card. Ordinary swipes still scroll.
 let touchPending=null;
 document.addEventListener("touchstart",e=>{
-  if(e.touches.length!==1)return;
+  if(e.touches.length!==1){clearTimeout(touchPending?.timer);touchPending=null;cancelDrag();return;}
   const card=cardFromEvent(e);
   if(!card)return;
   const t=e.touches[0];
@@ -214,7 +220,7 @@ document.addEventListener("touchstart",e=>{
     pending.activated=true;
     dragStart(pending.x,pending.y,pending.card);
     if(navigator.vibrate)navigator.vibrate(12);
-  },50);
+  },180);
   touchPending=pending;
 },{passive:true});
 document.addEventListener("touchmove",e=>{
@@ -225,7 +231,7 @@ document.addEventListener("touchmove",e=>{
     const dy=t.clientY-touchPending.y;
     // Horizontal movement starts dragging immediately, without waiting.
     // A quick vertical swipe still scrolls the list normally.
-    if(Math.abs(dx)>5 && Math.abs(dx)>Math.abs(dy)*1.1){
+    if(Math.abs(dx)>12 && Math.abs(dx)>Math.abs(dy)*1.5){
       clearTimeout(touchPending.timer);
       touchPending.activated=true;
       dragStart(touchPending.x,touchPending.y,touchPending.card);
@@ -250,6 +256,7 @@ document.addEventListener("touchend",e=>{
     else cancelDrag();
   }
   touchPending=null;
+  void refreshFamily();
 },{passive:false});
 document.addEventListener("touchcancel",()=>{
   clearTimeout(touchPending?.timer);
