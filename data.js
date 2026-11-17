@@ -1,3 +1,29 @@
+window.GATLINBURG_CATEGORIES = [{"name":"Attractions & experiences","emoji":"🎢"},{"name":"Games, rides & entertainment","emoji":"🎮"},{"name":"Nature & scenic adventures","emoji":"🌲"},{"name":"Restaurants","emoji":"🍽️"},{"name":"Desserts & treats","emoji":"🍩"},{"name":"Christmas & seasonal activities","emoji":"🎄"},{"name":"Shopping & exploring","emoji":"🛍️"},{"name":"Adults","emoji":"🍹"}];
+const dessertNames = new Set([
+  "The Donut Friar","Ole Smoky Candy Kitchen","The Crazy Mason Milkshake Bar",
+  "Byrd's Famous Cookies","Gatlinburg Goo Goo Chocolate Co.",
+  "Maddog's Creamery & Donuts","Glades Soda Fountain"
+]);
+const legacyTypeMap = {
+  "Outdoor adventures":"Attractions & experiences",
+  "Theme parks":"Attractions & experiences",
+  "Museums & exhibits":"Attractions & experiences",
+  "Animals":"Attractions & experiences",
+  "Games & rides":"Games, rides & entertainment",
+  "Water & snow":"Games, rides & entertainment",
+  "Shows":"Games, rides & entertainment",
+  "Scenic spots":"Nature & scenic adventures",
+  "Shopping":"Shopping & exploring",
+  "Food & treats":"Restaurants",
+  "Seasonal":"Christmas & seasonal activities",
+  "Adults":"Adults"
+};
+window.gatlinburgCategoryName = (oldType,name) => {
+  if (window.GATLINBURG_CATEGORIES.some(c=>c.name===oldType))return oldType;
+  if (dessertNames.has(name))return "Desserts & treats";
+  if (name==="Oconaluftee Elk Viewing")return "Nature & scenic adventures";
+  return legacyTypeMap[oldType]||"Attractions & experiences";
+};
 window.GATLINBURG_ACTIVITIES = [
 ["Anakeesta","Outdoor adventures","🌲","Gatlinburg"],
 ["Gatlinburg SkyPark & SkyBridge","Outdoor adventures","🌉","Gatlinburg"],
@@ -89,4 +115,4 @@ window.GATLINBURG_ACTIVITIES = [
 ["Dick's Last Resort","Food & treats","🍔","Gatlinburg"],
 ["State Line (TN–NC)","Scenic spots","📍","Great Smoky Mountains"],
 ["Hangman's Dome","Games & rides","🎯","Gatlinburg"]
-].map((a,i)=>({id:"default-"+(i+1),name:a[0],category:a[1],emoji:a[2],area:a[3],photo:""}));
+].map((a,i)=>({id:"default-"+(i+1),name:a[0],category:window.gatlinburgCategoryName(a[1],a[0]),emoji:a[2],area:a[3],photo:""}));
